@@ -337,22 +337,18 @@
     </header>
 
     <div class="app-wrapper">
-        <!-- Sidebar: History & Library -->
         <aside id="app-sidebar" class="sidebar">
-            <div class="sidebar-header">
-                <h3>卦例馆</h3>
-                <button class="btn-icon" id="btn-sync-history" title="同步记录">🔄</button>
-            </div>
-            <div class="sidebar-action">
+            <div class="sidebar-top">
                 <button id="btn-new-case" class="btn-new-case">
                     <span>✨</span> 新起一卦
                 </button>
             </div>
-            <div class="history-section">
-                <div class="history-title">往昔记录</div>
-                <div class="history-list" id="history-list">
-                    <div class="history-empty">暂无回响，请先起卦</div>
-                </div>
+            <div class="sidebar-section-label">
+                <span>推演日志</span>
+                <button class="btn-icon-mini" id="btn-sync-history" title="刷新">↻</button>
+            </div>
+            <div class="history-list" id="history-list">
+                <div class="history-empty">尚无推演记录</div>
             </div>
         </aside>
 
@@ -492,28 +488,21 @@
             <section id="ai-chat" class="glass-panel">
                 <div class="chat-header">
                     <h2>AI 断卦</h2>
-                    <div class="chat-header-right">
-                        <div class="model-switcher" id="model-switcher">
-                            <select id="model-select"
-                                style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: 600; color: var(--accent-plum);">
-                                <option value="deepseek-r1">DeepSeek R1</option>
-                                <option value="qwen3-thinking">Qwen3 Thinking</option>
-                            </select>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="chat-status" id="chat-status">就绪</div>
-                            <button id="btn-stop-generate" class="hidden"
-                                style="padding: 2px 8px; font-size: 0.8rem; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">⏹
-                                暂停</button>
-                        </div>
+                    <div class="chat-header-controls">
+                        <select id="model-select" class="model-select-styled">
+                            <option value="deepseek-r1">DeepSeek R1</option>
+                            <option value="qwen3-thinking">Qwen3 Thinking</option>
+                        </select>
+                        <span class="chat-status-badge" id="chat-status">就绪</span>
+                        <button id="btn-stop-generate" class="btn-stop hidden">⏹ 暂停</button>
                     </div>
                 </div>
 
                 <div class="chat-messages" id="chat-messages">
                     <div class="chat-welcome">
-                        <p>🌸 欢迎使用梅花义理·数智决策系统</p>
-                        <p class="chat-hint">请先起卦，然后输入您的问题进行断卦分析。</p>
-                        <p class="chat-hint">💡 您也可以直接输入卦名，如"山泽损，四爻动"，系统将自动解析。</p>
+                        <div class="welcome-icon">☯</div>
+                        <p class="welcome-title">静候卦象</p>
+                        <p class="welcome-hint">起卦完成后，AI 将在此为您呈现义理分析</p>
                     </div>
                 </div>
             </section>
