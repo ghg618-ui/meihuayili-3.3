@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="梅花义理·数智决策系统 3.3 — 专业梅花易数推演平台，融合传统易学与现代AI智能断卦">
-    <title>梅花义理 · 数智决策系统 3.3</title>
+    <title>梅花义理 · 数智决策系统 3.4.1</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="index.css?v=3.3.6">
+    <link rel="stylesheet" href="index.css?v=3.4.1">
 
     <style>
         /* --- Modals --- */
@@ -321,7 +321,7 @@
                 <span class="logo-icon" id="sidebar-toggle"
                     style="cursor: pointer; padding: 4px 8px; margin-right: 4px;">☰</span>
                 <span class="logo-text">梅花义理</span>
-                <span class="logo-version">v3.3</span>
+                <span class="logo-version">v3.4.1</span>
             </h1>
             <p class="subtitle">数智决策系统</p>
             <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
@@ -454,24 +454,12 @@
                         <!-- Content will be injected by renderHexCard -->
                     </div>
 
-                    <!-- Arrow -->
-                    <div class="hex-arrow">
-                        <span>动爻变</span>
-                        <span class="arrow-icon">→</span>
-                    </div>
-
                     <!-- 变卦 -->
                     <div class="hex-card" id="hex-changed-card">
                         <div class="hex-card-header">
                             <span class="hex-card-title">变卦</span>
                         </div>
                         <!-- Content will be injected by renderHexCard -->
-                    </div>
-
-                    <!-- Arrow -->
-                    <div class="hex-arrow">
-                        <span>全反转</span>
-                        <span class="arrow-icon">→</span>
                     </div>
 
                     <!-- 对卦 -->
@@ -495,6 +483,7 @@
                         </select>
                         <span class="chat-status-badge" id="chat-status">就绪</span>
                         <button id="btn-stop-generate" class="btn-stop hidden">⏹ 暂停</button>
+                        <button id="btn-continue-generate" class="btn-continue hidden">▶ 继续</button>
                     </div>
                 </div>
 
@@ -503,6 +492,13 @@
                         <div class="welcome-icon">☯</div>
                         <p class="welcome-title">静候卦象</p>
                         <p class="welcome-hint">起卦完成后，AI 将在此为您呈现义理分析</p>
+                    </div>
+                    <!-- 用户追问输入区域 -->
+                    <div class="chat-input-area hidden" id="chat-input-area">
+                        <textarea class="chat-user-input" id="chat-user-input" placeholder="请输入追问...（如：这个建议具体该如何落实？）" rows="2"></textarea>
+                        <div class="chat-input-actions">
+                            <button id="btn-chat-send" class="btn-chat-send">发送</button>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -549,10 +545,10 @@
         </div>
     </div>
 
-    <script src="ganzhi-calendar.js?v=3.3.7"></script>
-    <script src="bagua-data.js?v=3.3.7"></script>
-    <script src="divination-engine.js?v=3.3.7"></script>
-    <script src="app-core.js?v=3.3.7"></script>
+    <script src="ganzhi-calendar.js?v=3.4.6"></script>
+    <script src="bagua-data.js?v=3.4.6"></script>
+    <script src="divination-engine.js?v=3.4.6"></script>
+    <script src="app-core.js?v=3.4.6"></script>
 </body>
 
 </html>

@@ -11,6 +11,7 @@ window.handleDivine = window.startDivination = function () {
 
 (function () {
     'use strict';
+    console.log('app-core.js: IIFE executed');
 
     // ===================== Model Registry =====================
     // 每个选项对应的 provider、默认模型名、默认端点
@@ -56,6 +57,11 @@ window.handleDivine = window.startDivination = function () {
     let lastRecordId = null;
     let currentAbortController = null;
     let modelAnalyses = []; // Track multiple model analyses for current hexagram
+
+    // Continue state
+    let isPaused = false;
+    let currentChatMessages = []; // Store chat history for resume
+    let currentModelConfig = null; // Store model config for resume
 
     // Provider configs loaded from localStorage
     let providerConfigs = loadProviderConfigs();
@@ -187,6 +193,19 @@ window.handleDivine = window.startDivination = function () {
     const btnDivine = $('btn-divine');
     const chatStatus = $('chat-status');
     const modelSelect = $('model-select');
+
+    // Chat follow-up input helpers (use functions for dynamically recreated elements)
+    function getChatUserInput() {
+        return $('chat-user-input');
+    }
+    function getBtnChatSend() {
+        return $('btn-chat-send');
+    }
+
+    // Helper function to get chat input area (may be recreated dynamically)
+    function getChatInputArea() {
+        return $('chat-input-area');
+    }
 
 
 
@@ -415,6 +434,8 @@ window.handleDivine = window.startDivination = function () {
 
         $('btn-sync-history').addEventListener('click', loadHistory);
 
+        // Chat events are handled inline when chat input area is created
+
 
     }
 
@@ -456,17 +477,11 @@ window.handleDivine = window.startDivination = function () {
         if (!password) return showAuthMsg('请输入密码');
 
         const users = getRegisteredUsers();
-        let user = users[name];
+        const user = users[name];
         const inputHash = hashPassword(password);
 
         if (!user) {
-            // Auto-register to prevent "cannot login" confusion when cache is cleared
-            users[name] = {
-                passwordHash: inputHash,
-                createdAt: Date.now()
-            };
-            saveRegisteredUsers(users);
-            user = users[name];
+            return showAuthMsg('用户不存在，请先注册');
         } else {
             if (user.passwordHash !== inputHash) {
                 return showAuthMsg('密码错误，请重试');
@@ -643,6 +658,9 @@ window.handleDivine = window.startDivination = function () {
                         // Ensure main components are visible
                         hexDisplay.classList.remove('hidden');
                         $('ai-chat').classList.remove('hidden');
+                        // Show chat input area for follow-up questions
+                        const chatInputAreaRef = getChatInputArea();
+                        if (chatInputAreaRef) chatInputAreaRef.classList.remove('hidden');
 
                         renderResult(currentResult, false); // false = isNew
 
@@ -651,6 +669,10 @@ window.handleDivine = window.startDivination = function () {
 
                         // Restore chat messages
                         chatMessages.innerHTML = '';
+
+                        // Re-add chat input area (was cleared by innerHTML = '')
+                        // (Will be handled by addAnalysisToChat)
+
                         if (record.analyses && record.analyses.length > 0) {
                             modelAnalyses = [...record.analyses];
                             addAnalysisToChat(record.analysis, record.reasoning, record.analyses);
@@ -661,7 +683,7 @@ window.handleDivine = window.startDivination = function () {
                                 content: record.analysis,
                                 reasoning: record.reasoning
                             }];
-                            addAnalysisToChat(record.analysis, record.reasoning);
+                            addAnalysisToChat(record.analysis, record.reasoning, modelAnalyses);
                         } else {
                             modelAnalyses = [];
                             addSystemMessage('该历史记录尚未进行 AI 断卦分析。');
@@ -675,9 +697,10 @@ window.handleDivine = window.startDivination = function () {
                 }
             });
 
-            // Delete button click
+            // Delete button click — two-step inline confirmation (no browser confirm())
             const delBtn = el.querySelector('.history-delete-btn');
             if (delBtn) {
+                let confirmTimer = null;
                 delBtn.addEventListener('click', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -685,14 +708,35 @@ window.handleDivine = window.startDivination = function () {
                     const id = el.dataset.id;
                     if (!id) return;
 
-                    // Brief visual feedback before the confirm or action
-                    el.style.opacity = '0.5';
-
-                    if (confirm('确定要永久删除这条卦例记录吗？')) {
+                    // Check if already in "confirm" state (second click = real delete)
+                    if (delBtn.dataset.confirming === 'true') {
+                        clearTimeout(confirmTimer);
+                        delBtn.dataset.confirming = 'false';
                         deleteHistoryEntry(id, el);
-                    } else {
-                        el.style.opacity = '1';
+                        return;
                     }
+
+                    // First click: enter "confirm" state
+                    delBtn.dataset.confirming = 'true';
+                    delBtn.textContent = '确定?';
+                    delBtn.style.background = '#c0392b';
+                    delBtn.style.fontSize = '0.85rem';
+                    delBtn.style.fontWeight = '800';
+                    delBtn.style.right = '0';  // Keep visible
+                    el.style.opacity = '0.6';
+                    el.style.paddingRight = '50px';
+
+                    // Auto-cancel after 3 seconds
+                    confirmTimer = setTimeout(() => {
+                        delBtn.dataset.confirming = 'false';
+                        delBtn.textContent = '🗑️';
+                        delBtn.style.background = '#ff4757';
+                        delBtn.style.fontSize = '1.1rem';
+                        delBtn.style.fontWeight = '';
+                        delBtn.style.right = '';
+                        el.style.opacity = '1';
+                        el.style.paddingRight = '';
+                    }, 3000);
                 });
             }
         });
@@ -777,9 +821,44 @@ window.handleDivine = window.startDivination = function () {
     function addAnalysisToChat(content, reasoning = null, analyses = null) {
         if (!chatMessages) return;
 
-        // Remove welcome
+        // Get or recreate chat input area if it was removed (e.g., by innerHTML = '')
+        let chatInputArea = getChatInputArea();
+
+        // Remove welcome message
         const welcome = chatMessages.querySelector('.chat-welcome');
         if (welcome) welcome.remove();
+
+        // If chat input area doesn't exist, create it
+        if (!chatInputArea) {
+            const inputArea = document.createElement('div');
+            inputArea.className = 'chat-input-area hidden';
+            inputArea.id = 'chat-input-area';
+            inputArea.innerHTML = `
+                <textarea class="chat-user-input" id="chat-user-input" placeholder="请输入追问...（如：这个建议具体该如何落实？）" rows="2"></textarea>
+                <div class="chat-input-actions">
+                    <button id="btn-chat-send" class="btn-chat-send">发送</button>
+                </div>
+            `;
+            chatMessages.appendChild(inputArea);
+            chatInputArea = inputArea;
+
+            // Bind events for newly created chat input area (only once)
+            const btnChatSend = getBtnChatSend();
+            const chatUserInput = getChatUserInput();
+
+            if (btnChatSend) {
+                btnChatSend.addEventListener('click', handleChatSend);
+            }
+
+            if (chatUserInput) {
+                chatUserInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleChatSend();
+                    }
+                });
+            }
+        }
 
         // If there are multiple analyses, render in comparison panel
         if (analyses && analyses.length > 1) {
@@ -814,6 +893,11 @@ window.handleDivine = window.startDivination = function () {
             div.innerHTML = html;
             chatMessages.appendChild(div);
         }
+
+        // Always append chat input area at the end
+        chatMessages.appendChild(chatInputArea);
+        chatInputArea.classList.remove('hidden');
+
         scrollChat();
     }
     // ===================== Casting Actions =====================
@@ -1068,6 +1152,72 @@ window.handleDivine = window.startDivination = function () {
         }
 
         sendToAI(JSON.stringify(payload, null, 2), buildSystemPrompt(), isComparison, reg.label, selectedModelKey);
+    }
+
+    // ===================== Chat Follow-up Handler =====================
+    function handleChatSend() {
+        const chatUserInput = getChatUserInput();
+        if (!chatUserInput) return;
+        const text = chatUserInput.value.trim();
+        if (!text) return;
+
+        // Add user message to chat
+        addMessage('user', text);
+        chatUserInput.value = '';
+
+        // Determine if we have an existing analysis to continue from
+        if (!currentResult && modelAnalyses.length === 0) {
+            addSystemMessage('请先进行卦象分析，然后再进行追问。');
+            return;
+        }
+
+        // Build follow-up message with context
+        const contextInfo = buildFollowUpContext();
+        const followUpContent = `【/context】\n${contextInfo}\n\n【用户追问】\n${text}`;
+
+        // Use regular chat prompt for follow-up questions
+        sendToAI(followUpContent, buildChatPrompt(), false, MODEL_REGISTRY[selectedModelKey]?.label || selectedModelKey, selectedModelKey);
+    }
+
+    function buildFollowUpContext() {
+        const contextParts = [];
+
+        if (currentResult) {
+            contextParts.push(`当前卦象：${currentResult.original.name} → ${currentResult.changed.name}（第${currentResult.movingYao}爻动）`);
+        }
+
+        if (modelAnalyses && modelAnalyses.length > 0) {
+            const latestAnalysis = modelAnalyses[modelAnalyses.length - 1];
+            if (latestAnalysis && latestAnalysis.content) {
+                // Truncate long content
+                const preview = latestAnalysis.content.length > 300
+                    ? latestAnalysis.content.substring(0, 300) + '...'
+                    : latestAnalysis.content;
+                contextParts.push(`上轮分析：${preview}`);
+            }
+        }
+
+        return contextParts.join('\n');
+    }
+
+    function buildChatPrompt() {
+        //他对易学有基本了解，可以进行日常交流和深度探讨"
+        return `你是一位精通《周易》的易学大师，同时也是一位耐心的-speaking 导师。你可以进行两种模式的对话：
+
+【断卦模式】
+- 当用户请求分析卦象时，运用完整的断卦体系
+- 结合月令、体用、爻辞进行系统分析
+- 输出结构化的卦象解读
+
+【 chat 模式】
+- 当用户进行追问或日常交流时，保持专业但亲切的语气
+- 回答与易学相关的问题
+- 可以深入探讨义理、历史典故、生活应用等
+- 保持简洁明了，避免冗长的结构化输出
+
+现在用户正在进行【chat 模式】的追问，请以导师的身份亲切、专业地回答用户的问题。
+如果用户的问题与之前的卦象相关，请结合上下文进行解答；
+如果用户提出了新的问题，也可以将其视为新的起卦请求进行分析。`;
     }
     function buildSystemPrompt() {
         return `你是一位精通《周易》的易学大师。你掌握了一套融合了张延生结构学、高岛义理学与传统五行旺衰法的高级断卦体系。你不再仅仅是算命先生，而是“高维主体的战略决策导师”。你的核心视角是“主体本位”——不侧重算“客观事情的成败”，而是推演“主体在特定时空下，该用何种能量与姿态去回应世界，从而主导事物走向”。
@@ -1394,6 +1544,9 @@ window.handleDivine = window.startDivination = function () {
             }
 
             chatStatus.textContent = '就绪';
+
+            // Reset paused state when normal completion
+            isPaused = false;
         } catch (error) {
             if (!isComparison) {
                 const loadingEls = chatMessages.querySelectorAll('.chat-message.assistant .loading-dots');
@@ -1404,14 +1557,24 @@ window.handleDivine = window.startDivination = function () {
             }
 
             if (error.name === 'AbortError') {
+                isPaused = true;
+                // Store current chat context for resume
+                currentChatMessages = buildChatMessages(systemPrompt, content, assistantContent, modelAnalyses);
+                currentModelConfig = modelConfig;
+
                 if (isComparison && targetEl) {
-                    targetEl.innerHTML = '<p style="color: #e74c3c;">⚠️ 分析已中止</p>';
+                    targetEl.innerHTML = '<p style="color: #e74c3c;">⚠️ 分析已暂停</p><button class="btn-resume" style="margin-top:10px;padding:6px 12px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;">▶ 继续生成</button>';
                     const statusEl = targetEl.closest('.model-column')?.querySelector('.model-column-status');
-                    if (statusEl) { statusEl.textContent = '已中止'; statusEl.classList.remove('streaming'); }
+                    if (statusEl) { statusEl.textContent = '已暂停'; statusEl.classList.remove('streaming'); }
                 } else {
-                    addMessage('error', '⚠️ 解析已被中止。');
+                    const msgEl = chatMessages.lastElementChild;
+                    if (msgEl && msgEl.classList.contains('chat-message')) {
+                        msgEl.innerHTML += '<p style="color: #e74c3c;">⚠️ 分析已暂停</p><button class="btn-resume" style="margin-top:10px;padding:6px 12px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;">▶ 继续生成</button>';
+                    } else {
+                        addMessage('error', '⚠️ 分析已暂停。');
+                    }
                 }
-                chatStatus.textContent = '已中止';
+                chatStatus.textContent = '已暂停';
             } else {
                 if (isComparison && targetEl) {
                     targetEl.innerHTML = `<p style="color: #e74c3c;">❌ ${escapeHtml(error.message)}</p>`;
@@ -1426,26 +1589,221 @@ window.handleDivine = window.startDivination = function () {
         } finally {
             currentAbortController = null;
             const btnStop = document.getElementById('btn-stop-generate');
+            const btnContinue = document.getElementById('btn-continue-generate');
             if (btnStop) btnStop.classList.add('hidden');
+            if (btnContinue) {
+                if (isPaused) {
+                    btnContinue.classList.remove('hidden');
+                    btnContinue.onclick = () => resumeAnalysis();
+                } else {
+                    btnContinue.classList.add('hidden');
+                }
+            }
+        }
+    }
+
+    // ===================== Build Chat Messages (for resume) =====================
+    function buildChatMessages(systemPrompt, content, assistantContent = '', analyses = []) {
+        const messages = [];
+        if (systemPrompt) {
+            messages.push({ role: 'system', content: systemPrompt });
+        }
+        messages.push({ role: 'user', content: content });
+        if (assistantContent) {
+            messages.push({ role: 'assistant', content: assistantContent });
+        }
+        return messages;
+    }
+
+    // ===================== Resume Analysis =====================
+    async function resumeAnalysis() {
+        if (!isPaused || !currentChatMessages || !currentModelConfig) {
+            showToast('无法恢复分析', 'error');
+            return;
+        }
+
+        // Hide continue button temporarily
+        const btnContinue = document.getElementById('btn-continue-generate');
+        if (btnContinue) btnContinue.classList.add('hidden');
+
+        // Show loading indicator
+        const loadingId = 'loading-' + Date.now();
+        const loadingHtml = `<div class="chat-message assistant" id="${loadingId}"><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
+        chatMessages.insertAdjacentHTML('beforeend', loadingHtml);
+        const loadingEl = document.getElementById(loadingId);
+        scrollChat();
+
+        // Create new abort controller for resume
+        if (currentAbortController) {
+            currentAbortController.abort();
+        }
+        currentAbortController = new AbortController();
+
+        // Store original prompt and content for resume
+        const resumeSystemPrompt = currentChatMessages[0]?.content || '';
+        const resumeUserContent = currentChatMessages[1]?.content || '';
+        const resumeAssistantContent = currentChatMessages[2]?.content || '';
+
+        try {
+            const response = await fetch(currentModelConfig.endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentModelConfig.key}`,
+                },
+                body: JSON.stringify({
+                    model: currentModelConfig.model,
+                    messages: [
+                        { role: 'system', content: resumeSystemPrompt },
+                        { role: 'user', content: resumeUserContent }
+                    ],
+                    stream: true,
+                    max_tokens: 8192
+                }),
+                signal: currentAbortController.signal
+            });
+
+            if (!response.ok) {
+                const errText = await response.text().catch(() => '');
+                throw new Error(`${currentModelConfig.label} API 请求失败: ${response.status} ${response.statusText}${errText ? ' — ' + errText.slice(0, 200) : ''}`);
+            }
+
+            // Remove loading indicator
+            if (loadingEl) loadingEl.remove();
+
+            // Create new message container for resumed content
+            const msgId = 'resume-msg-' + Date.now();
+            const msgHtml = `<div class="chat-message assistant" id="${msgId}"></div>`;
+            chatMessages.insertAdjacentHTML('beforeend', msgHtml);
+            const targetEl = document.getElementById(msgId);
+
+            // Stream response
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let assistantContent = '';
+            let reasoningContent = '';
+            let hasReasoning = false;
+            let buffer = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (let line of lines) {
+                    line = line.trim();
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6).trim();
+                        if (data === '[DONE]') continue;
+
+                        try {
+                            const json = JSON.parse(data);
+                            const delta = json.choices?.[0]?.delta;
+                            if (delta) {
+                                if (delta.reasoning_content && currentModelConfig.supportsReasoning) {
+                                    reasoningContent += delta.reasoning_content;
+                                    hasReasoning = true;
+                                }
+                                if (delta.content) {
+                                    assistantContent += delta.content;
+                                }
+                            }
+                        } catch (e) {
+                            // Skip invalid JSON
+                        }
+                    }
+                }
+
+                // Update display with accumulated content
+                let displayHtml = '';
+                if (hasReasoning && reasoningContent) {
+                    displayHtml += `<details class="thinking-block" open><summary>💭 思考过程</summary><pre>${escapeHtml(reasoningContent)}</pre></details>`;
+                }
+                // Include previously generated content (resumeAssistantContent)
+                if (resumeAssistantContent) {
+                    displayHtml += formatMarkdown(resumeAssistantContent);
+                    // Add a separator for resumed content
+                    displayHtml += '<hr style="margin:10px 0;border:0;border-top:1px solid #eee;">';
+                }
+                if (assistantContent) {
+                    displayHtml += formatMarkdown(assistantContent);
+                }
+                if (targetEl) {
+                    targetEl.innerHTML = displayHtml || '<div class="loading-dots"><span></span><span></span><span></span></div>';
+                }
+                scrollChat();
+            }
+
+            // Save resumed content to current analysis
+            const currentAnalysis = modelAnalyses[modelAnalyses.length - 1];
+            if (currentAnalysis) {
+                currentAnalysis.content += assistantContent;
+                if (reasoningContent) currentAnalysis.reasoning = reasoningContent;
+            }
+
+            // Update status
+            chatStatus.textContent = '就绪';
+            isPaused = false;
+
+            // Update history
+            if (lastRecordId) {
+                updateHistoryEntry(lastRecordId, {
+                    analysis: modelAnalyses[0]?.content || '',
+                    reasoning: modelAnalyses[0]?.reasoning || '',
+                    analyses: modelAnalyses
+                });
+                showToast('分析已继续并保存', 'success');
+            }
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                isPaused = true;
+                if (targetEl) {
+                    targetEl.innerHTML += '<p style="color: #e74c3c;">⚠️ 继续已暂停</p><button class="btn-resume" style="margin-top:10px;padding:6px 12px;background:#27ae60;color:white;border:none;border-radius:6px;cursor:pointer;">▶ 继续生成</button>';
+                }
+                chatStatus.textContent = '已暂停';
+            } else {
+                if (targetEl) {
+                    targetEl.innerHTML += `<p style="color: #e74c3c;">❌ ${escapeHtml(error.message)}</p>`;
+                }
+                chatStatus.textContent = '错误';
+                console.error('Resume Error:', error);
+            }
+        } finally {
+            currentAbortController = null;
+            const btnContinue = document.getElementById('btn-continue-generate');
+            if (btnContinue) {
+                if (isPaused) {
+                    btnContinue.classList.remove('hidden');
+                    btnContinue.onclick = () => resumeAnalysis();
+                } else {
+                    btnContinue.classList.add('hidden');
+                }
+            }
         }
     }
 
     // ===================== Chat Helpers =====================
+    let chatMessageCount = 0; // Track if we've sent the first message
     function addMessage(role, text) {
-        // Remove welcome message
+        // Remove welcome message only on first message
         const welcome = chatMessages.querySelector('.chat-welcome');
-        if (welcome) welcome.remove();
+        if (welcome && chatMessageCount === 0) welcome.remove();
 
         const div = document.createElement('div');
         div.className = `chat-message ${role}`;
         div.innerHTML = role === 'assistant' ? formatMarkdown(text) : escapeHtml(text);
         chatMessages.appendChild(div);
+        chatMessageCount++;
         scrollChat();
     }
 
     function addSystemMessage(text) {
         const welcome = chatMessages.querySelector('.chat-welcome');
-        if (welcome) welcome.remove();
+        if (welcome && chatMessageCount === 0) welcome.remove();
 
         const div = document.createElement('div');
         div.className = 'chat-message system';
