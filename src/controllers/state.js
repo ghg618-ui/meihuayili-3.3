@@ -14,11 +14,13 @@ const state = {
     modelAnalyses: [],
     currentAbortController: null,
     isPaused: false,
+    stopCurrentThinkingProgress: null,  // cleanup fn for the active thinking timer
     // For continue-after-stop
     interruptedCtx: null,  // { targetEl, messages, partialContent, partialReasoning, question, renderHistory }
     // For comparison (mode or model switch)
     lastAnalysisCtx: null,  // { msgEl, mode, modelKey, question }
-    pendingModelComparison: false
+    pendingModelComparison: false,
+    pendingModeComparison: false
 };
 
 export default state;

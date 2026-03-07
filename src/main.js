@@ -219,7 +219,10 @@ function bindEvents() {
             }
         }
         // If a completed analysis exists in the other mode, trigger side-by-side comparison
-        if (state.lastAnalysisCtx && state.lastAnalysisCtx.mode !== state.selectedMode && !state.interruptedCtx) {
+        if (state.interruptedCtx) {
+            // Stream in progress — defer comparison until it finishes
+            state.pendingModeComparison = true;
+        } else if (state.lastAnalysisCtx && state.lastAnalysisCtx.mode !== state.selectedMode) {
             performComparisonAnalysis(renderHistory);
         }
     });
@@ -235,9 +238,10 @@ function bindEvents() {
     $('#btn-quick-parse')?.addEventListener('click', handleQuickParse);
     $('#btn-stop-generate')?.addEventListener('click', () => {
         state.currentAbortController?.abort();
+        state.stopCurrentThinkingProgress?.();  // stop timer immediately (silent-abort path skips onError)
         $('#btn-stop-generate').classList.add('hidden');
         $('#btn-continue-generate')?.classList.remove('hidden');
-        $('#chat-status').textContent = '已停止';
+        $('#chat-status').textContent = '已暂停';
         $('#chat-input-area').classList.remove('hidden');
     });
     $('#btn-continue-generate')?.addEventListener('click', () => {

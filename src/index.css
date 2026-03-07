@@ -1121,6 +1121,7 @@ body {
   padding: 0;
   background: transparent;
   box-shadow: none;
+  max-width: 100%;
 }
 
 /* --- Dual Mode Comparison Layout --- */
