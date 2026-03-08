@@ -95,7 +95,7 @@ export async function performComparisonAnalysis(renderHistory) {
         if (modelInfo.provider === 'siliconflow' && configs.siliconflow) config = configs.siliconflow;
         else if (modelInfo.provider === 'deepseek' && configs.deepseek) config = configs.deepseek;
     }
-    if (!config || !config.key) {
+    if (!isProxyMode && (!config || !config.key)) {
         showToast(`请在设置中配置 ${modelInfo.label} 的 API Key`, 'error');
         return;
     }
@@ -147,7 +147,7 @@ export async function continueAIAnalysis() {
             if (modelInfo.provider === 'siliconflow' && configs.siliconflow) config = configs.siliconflow;
             else if (modelInfo.provider === 'deepseek' && configs.deepseek) config = configs.deepseek;
         }
-        if (!config || !config.key) {
+        if (!isProxyMode && (!config || !config.key)) {
             showToast(`请在设置中配置 ${modelInfo.label} 的 API Key`, 'error');
             return;
         }
