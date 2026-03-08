@@ -2,7 +2,7 @@
  * Auth Controller - Login/Register/Logout UI logic
  */
 import { $, showToast } from '../utils/dom.js';
-import { loginUser, registerUser, logoutUser, hasProAccess } from '../storage/auth.js';
+import { loginUser, registerUser, logoutUser, hasProAccess, getUserQuota } from '../storage/auth.js';
 import { MODEL_REGISTRY } from '../storage/settings.js';
 import { loadHistory } from '../storage/history.js';
 import { closeModal } from '../ui/modals.js';
@@ -25,6 +25,7 @@ export function switchToRegisterMode() {
 export function updateUIForAuth() {
     const userLabel = $('#user-name-label');
     const userAvatar = $('#user-avatar');
+    const userQuota = $('#user-quota-label');
     const logoutBtn = $('#btn-logout-header');
     const logoutSidebar = $('#btn-logout-sidebar');
     const sidebarFooter = $('#sidebar-mobile-footer');
@@ -34,6 +35,19 @@ export function updateUIForAuth() {
         const isPro = hasProAccess();
         if (userLabel) userLabel.textContent = state.currentUser.name;
         if (userAvatar) userAvatar.textContent = state.currentUser.name.charAt(0);
+        
+        if (userQuota) {
+            if (!isPro) {
+                const quota = getUserQuota();
+                userQuota.textContent = `普通结缘: 剩 ${quota} 次`;
+                userQuota.style.display = 'inline-block';
+            } else {
+                userQuota.textContent = 'Pro: 无限制';
+                userQuota.style.display = 'inline-block';
+                userQuota.style.color = 'var(--status-success)';
+            }
+        }
+
         // Logout buttons are visible for ALL logged-in users
         if (logoutBtn) logoutBtn.style.display = 'block';
         if (sidebarFooter) sidebarFooter.style.display = ''; // Fallback to CSS media query (flex on mobile, none on desktop)
@@ -58,6 +72,7 @@ export function updateUIForAuth() {
     } else {
         if (userLabel) userLabel.textContent = '未登录';
         if (userAvatar) userAvatar.textContent = '?';
+        if (userQuota) userQuota.style.display = 'none';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (sidebarFooter) sidebarFooter.style.display = 'none';
         if (logoutSidebar) logoutSidebar.style.display = 'none';

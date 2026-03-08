@@ -8,20 +8,39 @@ import { addMessage, scrollChat, wrapDualLayout } from '../ui/chat-view.js';
 import { fetchAIStream, isProxyMode, PROXY_ENDPOINT } from '../api/ai-client.js';
 import { formatMarkdown } from '../utils/formatter.js';
 import { openModal } from '../ui/modals.js';
-import { hasProAccess } from '../storage/auth.js';
+import { hasProAccess, decreaseUserQuota } from '../storage/auth.js';
 import DivinationEngine from '../core/divination-engine.js';
 import state from './state.js';
 import { loadSettingsToModal } from './settings-controller.js';
 import makeLogger from '../utils/logger.js';
+import { updateUIForAuth } from './auth-controller.js'; // 引入更新 UI 的方法
 
 const log = makeLogger('AI');
 
-export async function performAIAnalysis(question, renderHistory) {
+export async function performAIAnalysis(question, renderHistory, isFollowUp = false) {
     try {
         // 检查是否已经起卦
         if (!state.currentResult) {
             showToast('请先起卦再进行分析', 'error');
             return;
+        }
+
+        // 检查用户额度，只有新断卦才扣除额度，追问不扣额度
+        if (!state.currentUser) {
+            showToast('未登录，无法进行解卦，请先登录', 'error');
+            openModal('modal-auth');
+            return;
+        }
+
+        if (!isFollowUp) {
+            const quotaSuccess = decreaseUserQuota();
+            if (!quotaSuccess) {
+                showToast('今日免查缘分已尽 (限3次)。升级专业版即可无限制推演。', 'error');
+                // 如果后续有付费引导，可以直接在这里弹窗
+                return;
+            }
+            // 刷新导航栏的今日额度显示
+            updateUIForAuth();
         }
         
         // 自动检测用户权限并设置分析模式

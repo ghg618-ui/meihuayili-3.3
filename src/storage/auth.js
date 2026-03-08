@@ -80,3 +80,45 @@ export function hasProAccess() {
     // 后续接入订阅时，再改为严格字段校验（如 status==='active' 且未过期）。
     return false;
 }
+
+export function getUserQuota() {
+    const user = getCurrentUser();
+    if (!user) return 0;
+    if (hasProAccess()) return 999;
+
+    const users = getRegisteredUsers();
+    const userData = users[user.name];
+    if (!userData) return 0;
+
+    const today = new Date().toISOString().split('T')[0];
+    if (userData.lastDivinationDate !== today) {
+        userData.lastDivinationDate = today;
+        userData.usedQuota = 0;
+        saveRegisteredUsers(users);
+    }
+    const maxQuota = 3;
+    return Math.max(0, maxQuota - (userData.usedQuota || 0));
+}
+
+export function decreaseUserQuota() {
+    const user = getCurrentUser();
+    if (!user) return false;
+    if (hasProAccess()) return true;
+
+    const users = getRegisteredUsers();
+    const userData = users[user.name];
+    if (!userData) return false;
+
+    const today = new Date().toISOString().split('T')[0];
+    if (userData.lastDivinationDate !== today) {
+        userData.lastDivinationDate = today;
+        userData.usedQuota = 0;
+    }
+    
+    if ((userData.usedQuota || 0) >= 3) return false;
+
+    userData.usedQuota = (userData.usedQuota || 0) + 1;
+    saveRegisteredUsers(users);
+    return true;
+}
+

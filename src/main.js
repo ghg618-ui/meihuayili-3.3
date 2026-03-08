@@ -592,7 +592,7 @@ async function handleChatFollowUp() {
     addMessage($('#chat-messages'), { role: 'user', content: question });
     scrollChat($('#chat-messages'), true);
 
-    await performAIAnalysis(question, renderHistory);
+    await performAIAnalysis(question, renderHistory, true);
 }
 
 function renderResult(result, isNew = true) {
