@@ -17,6 +17,7 @@ const PROXY_BASE_URL = 'https://api.meihuayili.com';
 // ============================
 
 const PROXY_ENDPOINT = PROXY_BASE_URL ? `${PROXY_BASE_URL.replace(/\/$/, '')}/api/chat` : null;
+export const isProxyMode = !!PROXY_ENDPOINT;
 
 const DEFAULT_TIMEOUT_MS = 180000; // 180s — enough for deep reasoning models
 const MAX_RETRIES = 2;

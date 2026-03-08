@@ -5,7 +5,7 @@ import { $, showToast, escapeHtml } from '../utils/dom.js';
 import { loadProviderConfigs, MODEL_REGISTRY } from '../storage/settings.js';
 import { loadHistory, addHistoryRecord, loadFeedback } from '../storage/history.js';
 import { addMessage, scrollChat, wrapDualLayout } from '../ui/chat-view.js';
-import { fetchAIStream } from '../api/ai-client.js';
+import { fetchAIStream, isProxyMode } from '../api/ai-client.js';
 import { formatMarkdown } from '../utils/formatter.js';
 import { openModal } from '../ui/modals.js';
 import DivinationEngine from '../core/divination-engine.js';
@@ -30,7 +30,7 @@ export async function performAIAnalysis(question, renderHistory) {
             }
         }
 
-        if (!config || !config.key) {
+        if (!isProxyMode && (!config || !config.key)) {
             showToast(`请在设置中配置 ${modelInfo.label} 的 API Key`, 'error');
             loadSettingsToModal();
             openModal('modal-settings');
