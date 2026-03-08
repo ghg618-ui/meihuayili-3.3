@@ -77,7 +77,7 @@ export function getSelectedModel() {
     if (saved && MODEL_REGISTRY[saved]) {
         return saved;
     }
-    return 'sf-deepseek-r1';
+    return 'deepseek-combined';
 }
 
 export function setSelectedModel(modelKey) {

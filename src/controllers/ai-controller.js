@@ -29,6 +29,8 @@ export async function performAIAnalysis(question, renderHistory) {
             state.selectedMode = 'pro';  // 管理员/付费用户自动使用专业版
         } else {
             state.selectedMode = 'simple';  // 普通用户使用简化版
+            // 普通用户固定走主线模型，避免因旧缓存停留在备线
+            state.selectedModelKey = 'deepseek-combined';
         }
         
         const configs = loadProviderConfigs();
@@ -195,7 +197,7 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
     }
 
     // Save context for potential continuation
-    state.interruptedCtx = { targetEl, messages, mode: state.selectedMode, partialContent: prefixContent, partialReasoning: prefixReasoning, question, renderHistory };
+    state.interruptedCtx = { targetEl, messages, mode: state.selectedMode, partialContent: prefixContent, partialReasoning: prefixReasoning, question, renderHistory, autoResumeUsed: false };
         let thinkingPhase = true;
         let thinkingTimer = null;
         let thinkingProgress = 0;
@@ -452,13 +454,32 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
             $('#btn-continue-generate')?.classList.remove('hidden');
             $('#chat-input-area').classList.remove('hidden');
 
+            const rawMsg = String(err?.message || '');
+            const isNetworkLikeError = /load failed|failed to fetch|network|timeout|internet|503|504|502/i.test(rawMsg);
+            const canAutoResume = state.interruptedCtx
+                && (state.interruptedCtx.partialContent || state.interruptedCtx.partialReasoning)
+                && !state.interruptedCtx.autoResumeUsed;
+
+            // 网络抖动时自动续传一次，减少用户手动点击“继续”
+            if (isNetworkLikeError && canAutoResume) {
+                state.interruptedCtx.autoResumeUsed = true;
+                $('#chat-status').textContent = '自动续传中...';
+                $('#btn-continue-generate')?.classList.add('hidden');
+                showToast('网络波动，正在自动续传...', 'error');
+                setTimeout(() => continueAIAnalysis(), 800);
+                return;
+            }
+
             const safeMsg = escapeHtml(err.message || '未知错误');
+            const suggestion = isProxyMode
+                ? '建议：当前为代理模式，请稍后重试，或点击“继续”接续未完成内容。'
+                : '建议：请检查 [设置] 中的 API Key 是否正确，或尝试更换其他模型线路。';
             const errorHtml = `
                 <div class="error-msg" style="color: var(--status-critical); background: rgba(255,0,0,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,0,0,0.1); margin-top: 10px;">
                     <h4 style="margin: 0 0 8px 0; font-size: 1rem;">❌ 解析中断 (${safeMsg.includes('503') ? '解析服务器繁忙' : '接口调用异常'})</h4>
                     <p style="margin: 0; font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
                         原因可能是：${safeMsg}<br>
-                        建议：请检查 [设置] 中的 API Key 是否正确，或尝试更换其他模型线路。
+                        ${suggestion}
                     </p>
                 </div>
             `;

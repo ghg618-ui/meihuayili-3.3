@@ -100,6 +100,13 @@ function init() {
     }
 
     state.history = loadHistory(state.currentUser?.name);
+    state.selectedModelKey = getSelectedModel();
+
+    // 普通用户固定主线，避免历史缓存把线路锁在备线导致不稳定
+    if (!hasProAccess()) {
+        state.selectedModelKey = 'deepseek-combined';
+        setSelectedModel(state.selectedModelKey);
+    }
 
     populateSelects();
     populateModelSelect();
