@@ -38,9 +38,9 @@ export function updateUIForAuth() {
         // 权限检测：只有管理员/付费用户才显示模型选择器
         if (modelSelect) {
             if (hasProAccess()) {
-                modelSelect.style.display = 'inline-block';
+                modelSelect.classList.add('show-for-pro');
             } else {
-                modelSelect.style.display = 'none';
+                modelSelect.classList.remove('show-for-pro');
             }
         }
     } else {
@@ -48,7 +48,7 @@ export function updateUIForAuth() {
         if (userAvatar) userAvatar.textContent = '?';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (sidebarFooter) sidebarFooter.style.display = 'none';
-        if (modelSelect) modelSelect.style.display = 'none';  // 未登录用户隐藏模型选择器
+        if (modelSelect) modelSelect.classList.remove('show-for-pro');  // 未登录用户隐藏模型选择器
     }
 }
 

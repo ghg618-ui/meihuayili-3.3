@@ -105,12 +105,20 @@ function init() {
     populateModelSelect();
     setCurrentTimeToPicker();
     bindEvents();
-    updateUIForAuth();
+    updateUIForAuth();  // 这里会设置模型选择器的显示/隐藏
     renderHistory();
 
     // Set initial model
     const modelSelect = $('#model-select');
-    if (modelSelect) modelSelect.value = state.selectedModelKey;
+    if (modelSelect) {
+        modelSelect.value = state.selectedModelKey;
+        // 再次确保模型选择器的显示状态正确（防止被其他代码覆盖）
+        if (!hasProAccess()) {
+            modelSelect.classList.remove('show-for-pro');
+        } else {
+            modelSelect.classList.add('show-for-pro');
+        }
+    }
 
     log.info('Ready.');
 }

@@ -18,6 +18,12 @@ const log = makeLogger('AI');
 
 export async function performAIAnalysis(question, renderHistory) {
     try {
+        // 检查是否已经起卦
+        if (!state.currentResult) {
+            showToast('请先起卦再进行分析', 'error');
+            return;
+        }
+        
         // 自动检测用户权限并设置分析模式
         if (hasProAccess()) {
             state.selectedMode = 'pro';  // 管理员/付费用户自动使用专业版
