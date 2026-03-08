@@ -333,17 +333,38 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
             stopThinkingProgress();
             const totalContent = prefixContent + content;
             const totalReasoning = prefixReasoning + reasoning;
+            const hasOutput = Boolean((totalContent && totalContent.trim()) || (totalReasoning && totalReasoning.trim()));
 
             $('#chat-status').textContent = '就绪';
             $('#btn-stop-generate')?.classList.add('hidden');
             $('#chat-input-area').classList.remove('hidden');
-            state.interruptedCtx = null; // Clear — analysis complete
+            if (hasOutput) {
+                state.interruptedCtx = null; // Clear — analysis complete
+            }
 
-            if (totalContent) {
+            if (hasOutput) {
                 let finalHtml = '';
                 if (totalReasoning) finalHtml += `<details class="thinking-block"><summary>💭 深度推演逻辑</summary><pre>${escapeHtml(totalReasoning)}</pre></details>`;
-                finalHtml += formatMarkdown(totalContent);
+                if (totalContent) {
+                    finalHtml += formatMarkdown(totalContent);
+                } else {
+                    finalHtml += '<div class="assistant-note">已完成推演，但本次接口未返回最终正文，可点击“继续”自动接续。</div>';
+                }
                 targetEl.innerHTML = finalHtml;
+            } else {
+                $('#chat-status').textContent = '错误';
+                $('#btn-continue-generate')?.classList.remove('hidden');
+                targetEl.innerHTML = `
+                    <div class="error-msg" style="color: var(--status-critical); background: rgba(255,0,0,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,0,0,0.1); margin-top: 10px;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 1rem;">❌ 解析中断（返回为空）</h4>
+                        <p style="margin: 0; font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">
+                            服务端已结束响应，但未返回可展示内容。系统已保留上下文，请点击“继续”接续。
+                        </p>
+                    </div>
+                `;
+                showToast('本次返回为空，请点击继续接续', 'error');
+                scrollChat($('#chat-messages'), true);
+                return;
             }
 
             // Restore feedback button (streaming overwrites it)

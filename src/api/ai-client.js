@@ -116,6 +116,45 @@ async function _doStream({ endpoint, key, model, messages, onChunk, onFinish, si
         let assistantContent = '';
         let reasoningContent = '';
 
+        const handleDataLine = (line) => {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith('data:')) return;
+
+            const data = trimmed.slice(5).trim();
+            if (!data || data === '[DONE]') return;
+
+            try {
+                const json = JSON.parse(data);
+                if (json.error?.message) {
+                    throw new Error(json.error.message);
+                }
+
+                const choice = json.choices?.[0] || {};
+                const delta = choice.delta || {};
+                const reasoningDelta = delta.reasoning_content ?? delta.reasoning ?? '';
+                const contentDelta = delta.content ?? '';
+
+                if (reasoningDelta) {
+                    reasoningContent += reasoningDelta;
+                    onChunk?.({ type: 'reasoning', content: reasoningDelta, fullReasoning: reasoningContent, fullContent: assistantContent });
+                }
+
+                if (contentDelta) {
+                    assistantContent += contentDelta;
+                    onChunk?.({ type: 'content', content: contentDelta, fullContent: assistantContent, fullReasoning: reasoningContent });
+                }
+
+                // 兼容某些网关返回“非流式 JSON”但仍走了 stream 通道
+                const msgContent = choice.message?.content;
+                if (!assistantContent && typeof msgContent === 'string' && msgContent.trim()) {
+                    assistantContent = msgContent;
+                    onChunk?.({ type: 'content', content: msgContent, fullContent: assistantContent, fullReasoning: reasoningContent });
+                }
+            } catch (e) {
+                // Skip invalid JSON line
+            }
+        };
+
         while (true) {
             const { done, value } = await reader.read();
             if (done) break;
@@ -124,30 +163,14 @@ async function _doStream({ endpoint, key, model, messages, onChunk, onFinish, si
             const lines = buffer.split('\n');
             buffer = lines.pop() || '';
 
-            for (let line of lines) {
-                line = line.trim();
-                if (line.startsWith('data: ')) {
-                    const data = line.slice(6).trim();
-                    if (data === '[DONE]') continue;
-
-                    try {
-                        const json = JSON.parse(data);
-                        const delta = json.choices?.[0]?.delta;
-                        if (delta) {
-                            if (delta.reasoning_content) {
-                                reasoningContent += delta.reasoning_content;
-                                onChunk({ type: 'reasoning', content: delta.reasoning_content, fullReasoning: reasoningContent, fullContent: assistantContent });
-                            }
-                            if (delta.content) {
-                                assistantContent += delta.content;
-                                onChunk({ type: 'content', content: delta.content, fullContent: assistantContent, fullReasoning: reasoningContent });
-                            }
-                        }
-                    } catch (e) {
-                        // Skip invalid JSON
-                    }
-                }
+            for (const line of lines) {
+                handleDataLine(line);
             }
+        }
+
+        // Handle the final buffered line (some gateways don't end with trailing newline)
+        if (buffer.trim()) {
+            handleDataLine(buffer);
         }
 
         if (onFinish) {
