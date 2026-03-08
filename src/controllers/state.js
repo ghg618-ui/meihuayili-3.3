@@ -10,6 +10,7 @@ const state = {
     currentResult: null,
     lastRecordId: null,
     selectedModelKey: 'sf-deepseek-r1',
+    selectedMode: 'simple',  // 默认简化版，管理员/付费用户可切换到'pro'
     modelAnalyses: [],
     currentAbortController: null,
     isPaused: false,

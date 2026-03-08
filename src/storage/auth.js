@@ -58,3 +58,29 @@ export function getCurrentUser() {
 export function logoutUser() {
     localStorage.removeItem('meihua_current_user');
 }
+
+/**
+ * 检查用户是否有专业版权限
+ * 目前支持：管理员账户、付费用户（未来扩展）
+ * @returns {boolean}
+ */
+export function hasProAccess() {
+    const user = getCurrentUser();
+    if (!user) return false;
+    
+    const users = getRegisteredUsers();
+    const userData = users[user.name];
+    if (!userData) return false;
+    
+    // 管理员白名单（可在这里添加管理员账号）
+    const adminList = ['admin', 'gonghg'];  // 示例：管理员账号
+    if (adminList.includes(user.name)) return true;
+    
+    // 检查是否是付费用户（未来扩展：检查订阅状态、到期时间等）
+    if (userData.isPro || userData.subscription) {
+        // 这里可以进一步检查订阅是否过期
+        return true;
+    }
+    
+    return false;
+}

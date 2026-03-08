@@ -8,6 +8,7 @@ import { addMessage, scrollChat, wrapDualLayout } from '../ui/chat-view.js';
 import { fetchAIStream, isProxyMode, PROXY_ENDPOINT } from '../api/ai-client.js';
 import { formatMarkdown } from '../utils/formatter.js';
 import { openModal } from '../ui/modals.js';
+import { hasProAccess } from '../storage/auth.js';
 import DivinationEngine from '../core/divination-engine.js';
 import state from './state.js';
 import { loadSettingsToModal } from './settings-controller.js';
@@ -17,6 +18,13 @@ const log = makeLogger('AI');
 
 export async function performAIAnalysis(question, renderHistory) {
     try {
+        // 自动检测用户权限并设置分析模式
+        if (hasProAccess()) {
+            state.selectedMode = 'pro';  // 管理员/付费用户自动使用专业版
+        } else {
+            state.selectedMode = 'simple';  // 普通用户使用简化版
+        }
+        
         const configs = loadProviderConfigs();
         const modelInfo = MODEL_REGISTRY[state.selectedModelKey];
 
@@ -37,10 +45,10 @@ export async function performAIAnalysis(question, renderHistory) {
             return;
         }
 
-        const payload = DivinationEngine.buildPayload(state.currentResult, question);
+        const payload = DivinationEngine.buildPayload(state.currentResult, question, state.selectedMode);
         const feedback = state.currentUser ? loadFeedback(state.currentUser.name) : [];
         const hasFeedbackLearning = feedback.some(f => f.rating === 'off' || f.rating === 'partial' || f.correction);
-        const systemPrompt = buildSystemPrompt(feedback);
+        const systemPrompt = buildSystemPrompt(state.selectedMode, feedback);
 
         const messages = [
             { role: 'system', content: systemPrompt },
@@ -105,9 +113,9 @@ export async function performComparisonAnalysis(renderHistory) {
     const { targetEl } = wrapDualLayout(ctx.msgEl, oldLabel, newLabel);
 
     // Build new messages
-    const payload = DivinationEngine.buildPayload(state.currentResult, ctx.question);
+    const payload = DivinationEngine.buildPayload(state.currentResult, ctx.question, state.selectedMode);
     const feedback = state.currentUser ? loadFeedback(state.currentUser.name) : [];
-    const systemPrompt = buildSystemPrompt(feedback);
+    const systemPrompt = buildSystemPrompt(state.selectedMode, feedback);
     const messages = [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: JSON.stringify(payload) }
@@ -414,7 +422,7 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
     });
 }
 
-export function buildSystemPrompt(feedbackRecords = []) {
+export function buildSystemPrompt(mode = 'simple', feedbackRecords = []) {
     // ═══════════════════════════════════════════════════════
     // 共享分析内核：无论简化版/专业版，断卦逻辑完全一致
     // ═══════════════════════════════════════════════════════
@@ -511,11 +519,41 @@ ${cases}
 请在分析中有意识地校正上述偏差模式，提高推演精度。`;
     }
 
-    // 统一使用专业版输出格式
+    // 根据用户权限选择输出格式
+    if (mode === 'simple') {
+        return coreLogic + learningBlock + `
+
+————————————
+三、输出流程（简化版：非专业客户直读指南）
+
+你必须在内部完整执行上述所有分析逻辑（月令校准、三段式推演、双轨矩阵判定），但输出时将专业结论翻译为通俗易懂的自然语言，禁止直接使用"旺相休囚死"、"体生用"、"比和"等专业术语。严格按以下 Markdown 格式输出：
+
+### 🔮 【一语定调】
+（先在内部完成双轨矩阵判定，再根据所落象限，用2-3句话给出综合性、已消化完毕的行动建议。禁止把"现实层"和"高维层"拆开各说一句，必须合并为一个一致的总结论。定调规则：
+- 【大胜】→ "可以做，条件好，大胆推进。"
+- 【大败】→ "不宜做，现实和天道都不支持，应及时止损。"
+- 【假胜】→ "短期可能有收获，但存在隐患，谨慎推进、留好退路。"
+- 【挡灾】→ "这个具体目标（如赚钱）难以达成，但整体方向对你有价值，建议调整期望后可以参与——重心放在成长和积累，而非短期回报。"
+切忌：遇到【挡灾】时直接说"不行"或"无法达成"，这会与后续高维建议自相矛盾。）
+
+### 📊 【现状与大势】
+（翻译卦辞+本卦：你当下处在一个什么样的宏观大环境里？基础底盘如何？用比喻和直白语言讲清楚。）
+
+### 🔄 【过程与结局】
+（翻译变卦+对卦的体用演变：事情接下来会遇到什么助力/阻力？最终的客观结果是什么？结局由对卦定性，但需结合旺衰修正后给出准确判断，而不是简单说"失败"。）
+
+### 💡 【高维生存锦囊】
+（综合卦辞大背景与爻辞微观指针：在这个大环境下，面对必然的现实走向，你现在具体该怎么做？给出一针见血的落地行动建议，须与一语定调结论保持一致。）
+
+### ⚠️ 【慎行事项】
+（指出当前最不该做的一件事或需要回避的风险。）`;
+    }
+
+    // 专业版（管理员/付费用户专享）
     return coreLogic + learningBlock + `
 
 ————————————
-三、输出流程（高维能量与双轨推演系统报告）
+三、输出流程（专业版：高维能量与双轨推演系统报告）
 
 严格按以下 Markdown 格式输出：
 
