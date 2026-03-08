@@ -1,6 +1,6 @@
 {
   "name": "meihua-yili",
-  "version": "3.7.1",
+  "version": "3.8.0",
   "description": "梅花义理·数智决策系统 - 专业梅花易数推演平台",
   "scripts": {
     "dev": "vite",
