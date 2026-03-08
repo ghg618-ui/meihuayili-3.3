@@ -34,10 +34,11 @@ export function updateUIForAuth() {
         const isPro = hasProAccess();
         if (userLabel) userLabel.textContent = state.currentUser.name;
         if (userAvatar) userAvatar.textContent = state.currentUser.name.charAt(0);
-        if (logoutBtn) logoutBtn.style.display = isPro ? 'block' : 'none';
-        if (sidebarFooter) sidebarFooter.style.display = isPro ? 'flex' : 'none';
-        if (logoutSidebar) logoutSidebar.style.display = isPro ? 'inline-block' : 'none';
-        
+        // Logout buttons are visible for ALL logged-in users
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        if (sidebarFooter) sidebarFooter.style.display = ''; // Fallback to CSS media query (flex on mobile, none on desktop)
+        if (logoutSidebar) logoutSidebar.style.display = '';
+
         // 权限检测：只有管理员/付费用户才显示模型选择器
         if (modelSelect) {
             modelSelect.innerHTML = '';
