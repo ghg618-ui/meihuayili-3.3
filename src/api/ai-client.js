@@ -16,7 +16,7 @@ const log = makeLogger('AIClient');
 const PROXY_BASE_URL = 'https://api.meihuayili.com';
 // ============================
 
-const PROXY_ENDPOINT = PROXY_BASE_URL ? `${PROXY_BASE_URL.replace(/\/$/, '')}/api/chat` : null;
+export const PROXY_ENDPOINT = PROXY_BASE_URL ? `${PROXY_BASE_URL.replace(/\/$/, '')}/api/chat` : null;
 export const isProxyMode = !!PROXY_ENDPOINT;
 
 const DEFAULT_TIMEOUT_MS = 180000; // 180s — enough for deep reasoning models
@@ -85,12 +85,17 @@ async function _doStream({ endpoint, key, model, messages, onChunk, onFinish, si
         : timeoutController.signal;
 
     try {
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        // Only add Authorization if key is present (direct mode, not proxy)
+        if (key) {
+            headers['Authorization'] = `Bearer ${key}`;
+        }
+
         const response = await fetch(endpoint, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${key}`,
-            },
+            headers,
             body: JSON.stringify({
                 model,
                 messages,

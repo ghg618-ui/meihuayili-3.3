@@ -5,7 +5,7 @@ import { $, showToast, escapeHtml } from '../utils/dom.js';
 import { loadProviderConfigs, MODEL_REGISTRY } from '../storage/settings.js';
 import { loadHistory, addHistoryRecord, loadFeedback } from '../storage/history.js';
 import { addMessage, scrollChat, wrapDualLayout } from '../ui/chat-view.js';
-import { fetchAIStream, isProxyMode } from '../api/ai-client.js';
+import { fetchAIStream, isProxyMode, PROXY_ENDPOINT } from '../api/ai-client.js';
 import { formatMarkdown } from '../utils/formatter.js';
 import { openModal } from '../ui/modals.js';
 import DivinationEngine from '../core/divination-engine.js';
@@ -225,9 +225,13 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
         // Expose so the stop button can kill the timer even on user-abort (silent path)
         state.stopCurrentThinkingProgress = stopThinkingProgress;
 
+        // Route to proxy if available, else direct
+        const apiEndpoint = isProxyMode ? PROXY_ENDPOINT : config.endpoint;
+        const apiKey = isProxyMode ? '' : config.key;
+
         await fetchAIStream({
-        endpoint: config.endpoint,
-        key: config.key,
+        endpoint: apiEndpoint,
+        key: apiKey,
         model: modelInfo.model,
         messages,
         signal: state.currentAbortController.signal,
