@@ -2334,11 +2334,11 @@ input[type=number] {
 
 /* model-select 默认隐藏，由JavaScript根据用户权限动态控制 */
 #model-select {
-  display: none; /* 默认隐藏，登录后根据权限显示 */
+  display: none !important; /* 默认隐藏，登录后根据权限显示 */
 }
 
 #model-select.show-for-pro {
-  display: inline-block; /* 专业用户才显示 */
+  display: inline-block !important; /* 专业用户才显示 */
 }
 
 #app-sidebar.collapsed {

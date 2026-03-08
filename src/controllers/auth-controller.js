@@ -39,8 +39,10 @@ export function updateUIForAuth() {
         if (modelSelect) {
             if (hasProAccess()) {
                 modelSelect.classList.add('show-for-pro');
+                modelSelect.style.display = ''; // 清除内联样式，让CSS类生效
             } else {
                 modelSelect.classList.remove('show-for-pro');
+                modelSelect.style.display = 'none'; // 强制隐藏
             }
         }
     } else {

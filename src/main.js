@@ -115,8 +115,10 @@ function init() {
         // 再次确保模型选择器的显示状态正确（防止被其他代码覆盖）
         if (!hasProAccess()) {
             modelSelect.classList.remove('show-for-pro');
+            modelSelect.style.display = 'none';
         } else {
             modelSelect.classList.add('show-for-pro');
+            modelSelect.style.display = '';
         }
     }
 
