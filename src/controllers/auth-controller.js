@@ -2,7 +2,7 @@
  * Auth Controller - Login/Register/Logout UI logic
  */
 import { $, showToast } from '../utils/dom.js';
-import { loginUser, registerUser, logoutUser } from '../storage/auth.js';
+import { loginUser, registerUser, logoutUser, hasProAccess } from '../storage/auth.js';
 import { loadHistory } from '../storage/history.js';
 import { closeModal } from '../ui/modals.js';
 import state from './state.js';
@@ -27,17 +27,28 @@ export function updateUIForAuth() {
     const logoutBtn = $('#btn-logout-header');
     const logoutSidebar = $('#btn-logout-sidebar');
     const sidebarFooter = $('#sidebar-mobile-footer');
+    const modelSelect = $('#model-select');
 
     if (state.currentUser) {
         if (userLabel) userLabel.textContent = state.currentUser.name;
         if (userAvatar) userAvatar.textContent = state.currentUser.name.charAt(0);
         if (logoutBtn) logoutBtn.style.display = 'block';
         if (sidebarFooter) sidebarFooter.style.display = 'flex';
+        
+        // 权限检测：只有管理员/付费用户才显示模型选择器
+        if (modelSelect) {
+            if (hasProAccess()) {
+                modelSelect.style.display = 'inline-block';
+            } else {
+                modelSelect.style.display = 'none';
+            }
+        }
     } else {
         if (userLabel) userLabel.textContent = '未登录';
         if (userAvatar) userAvatar.textContent = '?';
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (sidebarFooter) sidebarFooter.style.display = 'none';
+        if (modelSelect) modelSelect.style.display = 'none';  // 未登录用户隐藏模型选择器
     }
 }
 

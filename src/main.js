@@ -28,6 +28,7 @@ import {
     handleAuthSubmit,
     handleLogout
 } from './controllers/auth-controller.js';
+import { hasProAccess } from './storage/auth.js';
 import { handleSaveSettings, loadSettingsToModal } from './controllers/settings-controller.js';
 import { performAIAnalysis, continueAIAnalysis, performComparisonAnalysis } from './controllers/ai-controller.js';
 import makeLogger from './utils/logger.js';
@@ -421,9 +422,11 @@ function loadHistoryRecord(id) {
         state.currentResult = record.result;
         state.modelAnalyses = record.analyses || [];
 
-        // 简化版隐藏排盘模块
-        if (state.selectedMode !== 'simple') {
+        // 权限检测：简化版用户隐藏排盘
+        if (hasProAccess()) {
             $('#hexagram-display').classList.remove('hidden');
+        } else {
+            $('#hexagram-display').classList.add('hidden');
         }
         $('#divination-console').classList.add('hidden');
         $('#input-chat').value = record.question || '';
@@ -575,7 +578,14 @@ function renderResult(result, isNew = true) {
         $('#chat-messages').innerHTML = '';
     }
     renderResultView($('#hexagram-display'), result, isNew);
-    $('#hexagram-display').classList.remove('hidden');
+    
+    // 权限检测：简化版用户隐藏排盘，专业版用户显示排盘
+    if (hasProAccess()) {
+        $('#hexagram-display').classList.remove('hidden');  // 管理员/付费用户：显示完整排盘
+    } else {
+        $('#hexagram-display').classList.add('hidden');  // 普通用户：隐藏排盘
+    }
+    
     $('#btn-divine').classList.remove('hidden');
     $('#divination-console').classList.add('hidden');
 }
