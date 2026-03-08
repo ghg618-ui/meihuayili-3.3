@@ -195,10 +195,12 @@ function bindEvents() {
         if (e.target.closest('#btn-sync-history')) return;
         const list = $('#history-list');
         const hint = $('#history-hint');
+        const toggle = $('#history-toggle');
         if (list) {
             const willCollapse = !list.classList.contains('collapsed');
             list.classList.toggle('collapsed');
             if (hint) hint.classList.toggle('hidden', !willCollapse);
+            if (toggle) toggle.classList.toggle('expanded', !willCollapse);
         }
     });
 

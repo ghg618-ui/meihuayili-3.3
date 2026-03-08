@@ -1,6 +1,11 @@
 /**
  * Provider & Model Settings Storage
  */
+
+// ⚠️ 运营密钥（临时方案）——在下方填入您的硅基流动 API Key
+// 注意：前端代码可通过 F12 查看，请务必在硅基流动后台设置每日消费限额防止滥用
+const _BUILTIN_KEY = '';  // 👈 在此填入 sk-xxxx 密钥
+
 export const PROVIDER_DEFAULTS = {
     deepseek: { endpoint: 'https://api.deepseek.com/chat/completions' },
     kimi: { endpoint: 'https://api.moonshot.cn/v1/chat/completions' },
@@ -35,12 +40,17 @@ export function loadProviderConfigs() {
         const saved = localStorage.getItem('meihua_provider_configs');
         const configs = saved ? JSON.parse(saved) : {};
 
-        // Ensure endpoint defaults exist (keys must be user-provided)
+        // Ensure endpoint defaults exist
         if (!configs.deepseek?.endpoint) {
             configs.deepseek = { ...configs.deepseek, endpoint: PROVIDER_DEFAULTS.deepseek.endpoint };
         }
         if (!configs.siliconflow?.endpoint) {
             configs.siliconflow = { ...configs.siliconflow, endpoint: PROVIDER_DEFAULTS.siliconflow.endpoint };
+        }
+
+        // 如果用户未自行配置 siliconflow key，使用内置运营密钥
+        if (!configs.siliconflow?.key && _BUILTIN_KEY) {
+            configs.siliconflow = { ...configs.siliconflow, key: _BUILTIN_KEY };
         }
 
         return configs;
@@ -53,6 +63,7 @@ export function loadProviderConfigs() {
  * Check if any provider has a valid API key configured
  */
 export function hasAnyApiKey() {
+    if (_BUILTIN_KEY) return true; // 有内置密钥时始终可用
     const configs = loadProviderConfigs();
     return Object.values(configs).some(c => c?.key && c.key.trim().length > 0);
 }
@@ -66,7 +77,7 @@ export function getSelectedModel() {
     if (saved && MODEL_REGISTRY[saved]) {
         return saved;
     }
-    return 'deepseek-combined';
+    return 'sf-deepseek-r1';
 }
 
 export function setSelectedModel(modelKey) {

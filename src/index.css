@@ -1573,21 +1573,22 @@ body {
     left: -100%;
     width: 82%;
     max-width: 300px;
-    height: 100%;
-    max-height: none !important;
+    height: auto;
+    max-height: 88vh;
+    min-height: unset;
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 200;
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    border-radius: 0 0 var(--radius-lg) 0;
     border-right: 1px solid var(--border-color);
-    border-bottom: none;
+    border-bottom: 1px solid var(--border-color);
     box-shadow: 8px 0 32px rgba(0, 0, 0, 0.22);
     background: var(--bg-secondary);
     transition: left 0.32s cubic-bezier(0.4, 0, 0.2, 1);
     padding: 20px 16px 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
   }
 
   /* 抽屉打开状态 */
@@ -1598,16 +1599,16 @@ body {
   /* 消除旧的 :not(.collapsed) 展开逻辑在手机上的干扰 */
   #app-sidebar.active,
   #app-sidebar:not(.collapsed) {
-    max-height: none;
+    max-height: 88vh;
   }
 
-  /* 侧边栏底部退出按钮区（手机专属）——抽屉内始终撑到底部 */
+  /* 侧边栏底部退出按钮区（手机专属） */
   .sidebar-mobile-footer {
     display: flex;
     flex-direction: column;
     padding: 12px 0 8px;
     border-top: 1px solid var(--border-color);
-    margin-top: auto;
+    margin-top: 12px;
   }
 
   .btn-logout-sidebar {
@@ -2331,7 +2332,11 @@ input[type=number] {
   appearance: textfield;
 }
 
-/* --- Sidebar Toggle & Responsiveness --- */
+/* model-select 隐藏（默认模型内置） */
+#model-select {
+  display: none !important;
+}
+
 #app-sidebar.collapsed {
   width: 0;
   overflow: hidden;
@@ -2427,7 +2432,7 @@ input[type=number] {
   font-weight: 500;
   color: var(--text-secondary);
   letter-spacing: 0.03em;
-  border-bottom: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
   margin-bottom: 0;
   transition: var(--transition-smooth);
 }
@@ -2435,6 +2440,27 @@ input[type=number] {
 .sidebar-section-label:hover {
   background: var(--bg-secondary);
   color: var(--accent-plum);
+}
+
+.sidebar-section-label:active {
+  background: color-mix(in srgb, var(--accent-plum) 10%, transparent);
+}
+
+.history-toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.history-chevron {
+  transition: transform 0.25s ease;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+/* 展开时箭头旋转 */
+#history-toggle.expanded .history-chevron {
+  transform: rotate(180deg);
 }
 
 .history-toggle-text {
@@ -2785,36 +2811,9 @@ input[type=number] {
   font-weight: 500;
 }
 
-/* Settings FAB */
+/* Settings FAB — 密鑰内置后隐藏，用户无需配置 */
 .settings-fab {
-  position: fixed;
-  bottom: 40px;
-  left: 40px;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 100000;
-  transition: var(--transition-smooth);
-  color: var(--text-secondary);
-}
-
-.settings-fab:hover {
-  transform: rotate(45deg) scale(1.05);
-  color: var(--accent-plum);
-  border-color: var(--accent-plum);
-  background: var(--bg-secondary);
-  box-shadow: var(--shadow-lg);
-}
-
-[data-theme="dark"] .settings-fab {
-  background: var(--bg-secondary);
+  display: none;
 }
 
 /* ============================================

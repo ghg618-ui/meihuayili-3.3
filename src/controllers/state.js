@@ -9,7 +9,7 @@ const state = {
     history: [],
     currentResult: null,
     lastRecordId: null,
-    selectedModelKey: 'deepseek-combined',
+    selectedModelKey: 'sf-deepseek-r1',
     selectedMode: 'simple',
     modelAnalyses: [],
     currentAbortController: null,
