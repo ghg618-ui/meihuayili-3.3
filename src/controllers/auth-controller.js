@@ -4,7 +4,7 @@
 import { $, showToast } from '../utils/dom.js';
 import { loginUser, registerUser, logoutUser, hasProAccess, getUserQuota } from '../storage/auth.js';
 import { MODEL_REGISTRY } from '../storage/settings.js';
-import { loadHistory } from '../storage/history.js';
+import { loadHistory, mergeCloudHistory } from '../storage/history.js';
 import { closeModal } from '../ui/modals.js';
 import state from './state.js';
 
@@ -88,7 +88,7 @@ const MAX_USERNAME_LEN = 20;
 const MAX_PASSWORD_LEN = 64;
 const USERNAME_RE = /^[\w\u4e00-\u9fa5]+$/; // letters, digits, _, Chinese
 
-export function handleAuthSubmit(renderHistory) {
+export async function handleAuthSubmit(renderHistory) {
     const username = $('#auth-username').value.trim();
     const password = $('#auth-password').value;
     const mode = $('#tab-register').classList.contains('active') ? 'register' : 'login';
@@ -121,14 +121,15 @@ export function handleAuthSubmit(renderHistory) {
             showToast('两次密码输入不一致', 'error');
             return;
         }
-        user = registerUser(username, password);
+        user = await registerUser(username, password);
     } else {
-        user = loginUser(username, password);
+        user = await loginUser(username, password);
     }
 
     if (user && !user.error) {
         state.currentUser = user;
-        state.history = loadHistory(user.name);
+        // 从云端合并历史记录
+        state.history = await mergeCloudHistory(user.name);
         updateUIForAuth();
         renderHistory();
         closeModal('modal-auth');

@@ -1,10 +1,13 @@
 /**
  * User Auth & Registry Storage
+ * 优先调用服务器存储，localStorage 作为本地缓存
  */
 import { hashPassword } from '../utils/hashing.js';
 import makeLogger from '../utils/logger.js';
 
 const log = makeLogger('Auth');
+
+const API_BASE = 'https://api.meihuayili.com';
 
 export function getRegisteredUsers() {
     try {
@@ -19,32 +22,77 @@ export function saveRegisteredUsers(users) {
     localStorage.setItem('meihua_users', JSON.stringify(users));
 }
 
-export function loginUser(name, password) {
-    const users = getRegisteredUsers();
+export async function loginUser(name, password) {
     const hp = hashPassword(password);
+
+    // 优先服务器验证
+    try {
+        const resp = await fetch(`${API_BASE}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, passwordHash: hp }),
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+            // 同步到 localStorage 缓存
+            const users = getRegisteredUsers();
+            if (!users[name]) {
+                users[name] = { name, password: hp, created: new Date().toISOString() };
+                saveRegisteredUsers(users);
+            }
+            const currentUser = { name };
+            localStorage.setItem('meihua_current_user', JSON.stringify(currentUser));
+            return currentUser;
+        }
+        return { error: data.error || '用户名或密码错误' };
+    } catch (e) {
+        log.warn('服务器登录失败，使用本地验证', e);
+    }
+
+    // 服务器不可用时回退到 localStorage
+    const users = getRegisteredUsers();
     const user = users[name];
     if (user && (user.password === hp || user.passwordHash === hp)) {
         const currentUser = { name };
         localStorage.setItem('meihua_current_user', JSON.stringify(currentUser));
         return currentUser;
     }
-    return null;
+    return { error: '用户名或密码错误' };
 }
 
-export function registerUser(name, password) {
+export async function registerUser(name, password) {
+    const hp = hashPassword(password);
+
+    // 优先在服务器注册
+    try {
+        const resp = await fetch(`${API_BASE}/api/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, passwordHash: hp }),
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+            // 同步到 localStorage 缓存
+            const users = getRegisteredUsers();
+            users[name] = { name, password: hp, created: new Date().toISOString() };
+            saveRegisteredUsers(users);
+            const currentUser = { name };
+            localStorage.setItem('meihua_current_user', JSON.stringify(currentUser));
+            return currentUser;
+        }
+        return { error: data.error || '注册失败' };
+    } catch (e) {
+        log.warn('服务器注册失败，使用本地存储', e);
+    }
+
+    // 服务器不可用时回退到 localStorage
     const users = getRegisteredUsers();
     if (users[name]) return { error: '用户已存在' };
-
-    users[name] = {
-        name,
-        password: hashPassword(password),
-        created: new Date().toISOString()
-    };
+    users[name] = { name, password: hp, created: new Date().toISOString() };
     saveRegisteredUsers(users);
-
-    const user = { name };
-    localStorage.setItem('meihua_current_user', JSON.stringify(user));
-    return user;
+    const currentUser = { name };
+    localStorage.setItem('meihua_current_user', JSON.stringify(currentUser));
+    return currentUser;
 }
 
 export function getCurrentUser() {

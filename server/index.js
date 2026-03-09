@@ -11,7 +11,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -69,7 +69,7 @@ app.use(cors({
             cb(new Error(`不允许的来源: ${origin}`));
         }
     },
-    methods: ['POST', 'OPTIONS'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type'],
 }));
 
@@ -83,6 +83,94 @@ app.get('/health', (_req, res) => {
         configured,
         time: new Date().toISOString(),
     });
+});
+
+// ===== 数据存储层 =====
+const __dir = dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = join(__dir, 'data');
+const USERS_FILE = join(DATA_DIR, 'users.json');
+const HISTORY_DIR = join(DATA_DIR, 'history');
+
+if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+if (!existsSync(HISTORY_DIR)) mkdirSync(HISTORY_DIR, { recursive: true });
+
+function loadUsers() {
+    try { return JSON.parse(readFileSync(USERS_FILE, 'utf8')); }
+    catch { return {}; }
+}
+function saveUsers(users) {
+    writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+}
+
+// 用户名只能包含字母、数字、下划线、中文，防止路径遍历
+const SAFE_NAME_RE = /^[\w\u4e00-\u9fa5]{1,20}$/;
+function safeFileName(name) {
+    if (!SAFE_NAME_RE.test(name)) return null;
+    return name;
+}
+
+// ===== 用户注册 =====
+app.post('/api/register', (req, res) => {
+    const { name, passwordHash } = req.body;
+    if (!name || !passwordHash) return res.status(400).json({ error: '缺少用户名或密码' });
+    if (!SAFE_NAME_RE.test(name)) return res.status(400).json({ error: '用户名格式不合法' });
+
+    const users = loadUsers();
+    if (users[name]) return res.status(409).json({ error: '用户已存在' });
+
+    users[name] = { name, passwordHash, created: new Date().toISOString() };
+    saveUsers(users);
+    console.log(`[auth] 新用户注册: ${name}`);
+    res.json({ success: true, user: { name } });
+});
+
+// ===== 用户登录 =====
+app.post('/api/login', (req, res) => {
+    const { name, passwordHash } = req.body;
+    if (!name || !passwordHash) return res.status(400).json({ error: '缺少用户名或密码' });
+
+    const users = loadUsers();
+    const u = users[name];
+    if (u && (u.passwordHash === passwordHash || u.password === passwordHash)) {
+        console.log(`[auth] 用户登录: ${name}`);
+        res.json({ success: true, user: { name } });
+    } else {
+        res.status(401).json({ error: '用户名或密码错误' });
+    }
+});
+
+// ===== 管理员统计 =====
+const ADMIN_LIST = ['admin', 'gonghg'];
+app.get('/api/admin/stats', (req, res) => {
+    const { admin } = req.query;
+    if (!admin || !ADMIN_LIST.includes(admin)) {
+        return res.status(403).json({ error: '无权限' });
+    }
+    const users = loadUsers();
+    const userList = Object.values(users).map(u => ({ name: u.name, created: u.created }));
+    res.json({ totalUsers: userList.length, users: userList });
+});
+
+// ===== 历史记录保存 =====
+app.post('/api/history/save', (req, res) => {
+    const { username, records } = req.body;
+    if (!username || !safeFileName(username)) return res.status(400).json({ error: '用户名无效' });
+    const filePath = join(HISTORY_DIR, `${safeFileName(username)}.json`);
+    writeFileSync(filePath, JSON.stringify(records || [], null, 2));
+    res.json({ success: true });
+});
+
+// ===== 历史记录读取 =====
+app.get('/api/history/load', (req, res) => {
+    const { username } = req.query;
+    if (!username || !safeFileName(username)) return res.status(400).json({ error: '用户名无效' });
+    const filePath = join(HISTORY_DIR, `${safeFileName(username)}.json`);
+    try {
+        const records = JSON.parse(readFileSync(filePath, 'utf8'));
+        res.json({ success: true, records });
+    } catch {
+        res.json({ success: true, records: [] });
+    }
 });
 
 // ===== 主代理接口 =====

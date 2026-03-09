@@ -1,9 +1,12 @@
 /**
  * Divination History Storage
+ * 本地 localStorage + 云端同步
  */
 import makeLogger from '../utils/logger.js';
 
 const log = makeLogger('History');
+
+const API_BASE = 'https://api.meihuayili.com';
 
 export function getUserHistoryKey(userName) {
     return userName ? `meihua_history_${userName}` : null;
@@ -37,6 +40,8 @@ export function saveHistory(userName, history) {
         }
         throw e;
     }
+    // 异步同步到云端（不阻塞本地操作）
+    syncHistoryToCloud(userName, history);
 }
 
 export function addHistoryRecord(userName, record) {
@@ -52,6 +57,45 @@ export function deleteHistoryRecord(userName, recordId) {
     history = history.filter(r => String(r.id) !== String(recordId));
     saveHistory(userName, history);
     return history;
+}
+
+// ===== 云端同步 =====
+
+/** 把本地历史上传到服务器 */
+function syncHistoryToCloud(userName, records) {
+    fetch(`${API_BASE}/api/history/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: userName, records }),
+    }).catch(e => log.warn('云端同步失败', e));
+}
+
+/** 登录后从服务器拉取历史，与本地合并（去重） */
+export async function mergeCloudHistory(userName) {
+    try {
+        const resp = await fetch(`${API_BASE}/api/history/load?username=${encodeURIComponent(userName)}`);
+        const data = await resp.json();
+        if (!data.success || !data.records?.length) return loadHistory(userName);
+
+        const local = loadHistory(userName);
+        const localIds = new Set(local.map(r => String(r.id)));
+        // 云端有而本地没有的记录追加进来
+        for (const r of data.records) {
+            if (!localIds.has(String(r.id))) {
+                local.push(r);
+            }
+        }
+        // 按时间倒序
+        local.sort((a, b) => (b.id || 0) - (a.id || 0));
+        if (local.length > 50) local.length = 50;
+        // 保存合并结果
+        const key = getUserHistoryKey(userName);
+        if (key) localStorage.setItem(key, JSON.stringify(local));
+        return local;
+    } catch (e) {
+        log.warn('拉取云端历史失败', e);
+        return loadHistory(userName);
+    }
 }
 
 // ============================================
