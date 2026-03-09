@@ -96,7 +96,7 @@ export function getUserQuota() {
         userData.usedQuota = 0;
         saveRegisteredUsers(users);
     }
-    const maxQuota = 10;
+    const maxQuota = 15;
     return Math.max(0, maxQuota - (userData.usedQuota || 0));
 }
 
@@ -115,7 +115,7 @@ export function decreaseUserQuota() {
         userData.usedQuota = 0;
     }
     
-    if ((userData.usedQuota || 0) >= 10) return false;
+    if ((userData.usedQuota || 0) >= 15) return false;
 
     userData.usedQuota = (userData.usedQuota || 0) + 1;
     saveRegisteredUsers(users);

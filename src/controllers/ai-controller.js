@@ -35,7 +35,7 @@ export async function performAIAnalysis(question, renderHistory, isFollowUp = fa
         if (!isFollowUp) {
             const quotaSuccess = decreaseUserQuota();
             if (!quotaSuccess) {
-                showToast('今日免查缘分已尽 (限10次)。升级专业版即可无限制推演。', 'error');
+                showToast('今日推演次数已用完，明天再来探索吧 ✨ 如需更多次数可联系我们升级专业版~', 'error');
                 // 如果后续有付费引导，可以直接在这里弹窗
                 return;
             }
