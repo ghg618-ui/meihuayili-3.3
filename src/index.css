@@ -1514,6 +1514,34 @@ body {
     padding: 0 14px;
   }
 
+  /* 侧边栏入口小圆点提示 */
+  .sidebar-badge {
+    display: none;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-plum);
+    box-shadow: 0 0 0 2px var(--bg-primary);
+  }
+
+  .sidebar-badge.has-records {
+    display: block;
+  }
+
+  /* 汉堡菜单按钮更醒目 */
+  #sidebar-toggle {
+    color: var(--accent-plum);
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  #sidebar-toggle:active {
+    background: color-mix(in srgb, var(--accent-plum) 12%, transparent);
+  }
+
   .logo {
     font-size: 1rem;
     white-space: nowrap;
@@ -1526,7 +1554,7 @@ body {
     display: none;
   }
 
-  /* 用户名文字在手机上省略，只保留头像 */
+  /* 手机端用户名区域：显示名字 + 体验版徽章 */
   .user-profile-mini {
     padding: 5px 10px;
     gap: 6px;
@@ -1534,13 +1562,18 @@ body {
   }
 
   .user-name {
-    display: none;
+    display: inline;
+    max-width: 5.5em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.82rem;
   }
 
   .avatar-circle {
-    width: 28px;
-    height: 28px;
-    font-size: 0.85rem;
+    width: 26px;
+    height: 26px;
+    font-size: 0.78rem;
   }
 
   /* 头部退出按钮在手机上隐藏，改放到侧边栏 */
@@ -3139,14 +3172,23 @@ input[type=number] {
 
   .btn-new-case {
     width: 100%;
-    padding: 11px 14px;
+    padding: 12px 14px;
     border-radius: 12px;
     letter-spacing: 0.04em;
     font-weight: 600;
+    font-size: 0.95rem;
+    background: var(--accent-plum);
+    color: white;
+    border-color: var(--accent-plum);
+  }
+
+  .btn-new-case:hover,
+  .btn-new-case:active {
+    background: color-mix(in srgb, var(--accent-plum) 85%, black);
   }
 
   .sidebar-section-label {
-    margin-top: 4px;
+    margin-top: 6px;
     padding: 10px 12px;
     border-radius: 12px;
     background: var(--bg-primary);
@@ -3172,49 +3214,47 @@ input[type=number] {
 
   .history-list {
     margin-top: 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 14px;
-    background: var(--bg-primary);
-    padding: 8px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 0 2px;
     max-height: min(48dvh, 420px);
   }
 
   .history-list.collapsed {
     margin-top: 0;
     padding: 0;
-    border-width: 0;
   }
 
   .history-item {
-    border-left: none !important;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 12px 12px 10px !important;
-    margin-bottom: 8px;
-    background: var(--bg-primary);
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+    border: none;
+    border-left: 3px solid var(--accent-plum) !important;
+    border-radius: 8px;
+    padding: 10px 12px 8px !important;
+    margin-bottom: 6px;
+    background: color-mix(in srgb, var(--accent-plum) 4%, var(--bg-primary));
+    box-shadow: none;
   }
 
   .history-item:last-child {
     margin-bottom: 0;
   }
 
-  .history-item:hover {
-    padding-left: 12px !important;
-    padding-right: 12px;
-    background: color-mix(in srgb, var(--accent-plum) 4%, var(--bg-primary));
-    border-left-color: transparent;
+  .history-item:hover,
+  .history-item:active {
+    background: color-mix(in srgb, var(--accent-plum) 8%, var(--bg-primary));
   }
 
   .history-item.active {
-    border-color: color-mix(in srgb, var(--accent-plum) 44%, var(--border-color));
-    background: color-mix(in srgb, var(--accent-plum) 9%, var(--bg-primary));
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-plum) 14%, transparent);
+    border-left-color: var(--accent-plum) !important;
+    background: color-mix(in srgb, var(--accent-plum) 10%, var(--bg-primary));
+    box-shadow: none;
   }
 
   .history-item-name {
-    font-size: 0.96rem;
+    font-size: 0.92rem;
     margin-bottom: 2px;
+    font-weight: 600;
   }
 
   .history-item-desc {
