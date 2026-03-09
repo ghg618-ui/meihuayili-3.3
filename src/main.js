@@ -419,11 +419,6 @@ function renderHistory() {
     // Update count badge
     const countEl = $('#history-count');
     if (countEl) countEl.textContent = state.history.length > 0 ? state.history.length : '';
-    // Update sidebar hamburger badge (mobile)
-    const sidebarBadge = $('#sidebar-badge');
-    if (sidebarBadge) {
-        sidebarBadge.classList.toggle('has-records', state.history.length > 0);
-    }
     // Update hint visibility: show hint only when collapsed AND has records
     const hint = $('#history-hint');
     const list = $('#history-list');

@@ -1514,32 +1514,23 @@ body {
     padding: 0 14px;
   }
 
-  /* 侧边栏入口小圆点提示 */
-  .sidebar-badge {
-    display: none;
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--accent-plum);
-    box-shadow: 0 0 0 2px var(--bg-primary);
-  }
-
-  .sidebar-badge.has-records {
-    display: block;
-  }
-
   /* 汉堡菜单按钮更醒目 */
   #sidebar-toggle {
-    color: var(--accent-plum);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: var(--text-primary);
     border-radius: 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     transition: background 0.15s;
   }
 
   #sidebar-toggle:active {
-    background: color-mix(in srgb, var(--accent-plum) 12%, transparent);
+    background: color-mix(in srgb, var(--accent-plum) 15%, var(--bg-secondary));
+    border-color: var(--accent-plum);
   }
 
   .logo {
