@@ -38,8 +38,7 @@ export function updateUIForAuth() {
         
         if (userQuota) {
             if (!isPro) {
-                const quota = getUserQuota();
-                userQuota.textContent = `普通结缘: 剩 ${quota} 次`;
+                userQuota.textContent = '体验版';
                 userQuota.style.display = 'inline-block';
             } else {
                 userQuota.textContent = 'Pro: 无限制';
