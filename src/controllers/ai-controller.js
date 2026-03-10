@@ -77,10 +77,37 @@ export async function performAIAnalysis(question, renderHistory, isFollowUp = fa
         const hasFeedbackLearning = feedback.some(f => f.rating === 'off' || f.rating === 'partial' || f.correction);
         const systemPrompt = buildSystemPrompt(state.selectedMode, feedback);
 
-        const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: JSON.stringify(payload) }
-        ];
+        let messages;
+        if (isFollowUp) {
+            // 追问模式：构建对话历史，让 AI 能区分"继续聊卦"和"闲聊"
+            const chatMsgs = document.querySelectorAll('#chat-messages .chat-message');
+            const history = [];
+            chatMsgs.forEach(el => {
+                const role = el.classList.contains('user') ? 'user' : 'assistant';
+                const contentEl = el.querySelector('.msg-content');
+                if (contentEl) {
+                    const text = contentEl.textContent.trim().slice(0, 800);
+                    if (text) history.push({ role, content: text });
+                }
+            });
+            // 去掉最后一条 user 消息（就是本次追问，避免重复）
+            if (history.length > 0 && history[history.length - 1].role === 'user') {
+                history.pop();
+            }
+            // 保留最近 6 条对话（约3轮），避免上下文过长
+            const recentHistory = history.slice(-6);
+            messages = [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: JSON.stringify(payload) },  // 首轮卦象数据作为上下文
+                ...recentHistory,
+                { role: 'user', content: question }  // 追问以纯文本形式发送
+            ];
+        } else {
+            messages = [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: JSON.stringify(payload) }
+            ];
+        }
 
         // Capture original model at start time (user may switch during streaming)
         const startModelKey = state.selectedModelKey;
