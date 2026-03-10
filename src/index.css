@@ -2883,6 +2883,29 @@ input[type=number] {
   padding-top: 10px;
 }
 
+.msg-bottom-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.btn-new-case-inline {
+  padding: 8px 24px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-new-case-inline:hover {
+  color: var(--accent-plum);
+  border-color: var(--accent-plum);
+  background: rgba(93, 43, 93, 0.04);
+}
+
 .icon-btn.btn-feedback {
   background: none;
   border: none;
@@ -3179,12 +3202,12 @@ input[type=number] {
   box-shadow: 0 4px 12px rgba(0, 122, 204, 0.35);
 }
 
-[data-theme="dark"] .btn-new-case-chat {
+[data-theme="dark"] .btn-new-case-inline {
   color: #b0b0b0;
   border-color: #444;
 }
 
-[data-theme="dark"] .btn-new-case-chat:hover {
+[data-theme="dark"] .btn-new-case-inline:hover {
   color: #4a9eff;
   border-color: #4a9eff;
   background: #2a2d2e;

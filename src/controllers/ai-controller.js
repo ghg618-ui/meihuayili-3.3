@@ -77,37 +77,10 @@ export async function performAIAnalysis(question, renderHistory, isFollowUp = fa
         const hasFeedbackLearning = feedback.some(f => f.rating === 'off' || f.rating === 'partial' || f.correction);
         const systemPrompt = buildSystemPrompt(state.selectedMode, feedback);
 
-        let messages;
-        if (isFollowUp) {
-            // 追问模式：构建对话历史，让 AI 能区分"继续聊卦"和"闲聊"
-            const chatMsgs = document.querySelectorAll('#chat-messages .chat-message');
-            const history = [];
-            chatMsgs.forEach(el => {
-                const role = el.classList.contains('user') ? 'user' : 'assistant';
-                const contentEl = el.querySelector('.msg-content');
-                if (contentEl) {
-                    const text = contentEl.textContent.trim().slice(0, 800);
-                    if (text) history.push({ role, content: text });
-                }
-            });
-            // 去掉最后一条 user 消息（就是本次追问，避免重复）
-            if (history.length > 0 && history[history.length - 1].role === 'user') {
-                history.pop();
-            }
-            // 保留最近 6 条对话（约3轮），避免上下文过长
-            const recentHistory = history.slice(-6);
-            messages = [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: JSON.stringify(payload) },  // 首轮卦象数据作为上下文
-                ...recentHistory,
-                { role: 'user', content: question }  // 追问以纯文本形式发送
-            ];
-        } else {
-            messages = [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: JSON.stringify(payload) }
-            ];
-        }
+        const messages = [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: JSON.stringify(payload) }
+        ];
 
         // Capture original model at start time (user may switch during streaming)
         const startModelKey = state.selectedModelKey;
@@ -235,7 +208,6 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
     $('#chat-status').textContent = `${modelInfo.label} 思考中...`;
     $('#btn-stop-generate')?.classList.remove('hidden');
     $('#btn-continue-generate')?.classList.add('hidden');
-    $('#chat-input-area').classList.add('hidden');
 
     // If continuing, clear leftover thinking UI so it re-initialises cleanly
     if (targetEl.querySelector('.thinking-status')) {
@@ -383,7 +355,6 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
 
             $('#chat-status').textContent = '就绪';
             $('#btn-stop-generate')?.classList.add('hidden');
-            $('#chat-input-area').classList.remove('hidden');
             if (hasOutput) {
                 state.interruptedCtx = null; // Clear — analysis complete
             }
@@ -413,13 +384,16 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
                 return;
             }
 
-            // Restore feedback button (streaming overwrites it)
+            // Restore feedback button + new case button (streaming overwrites it)
             const parentMsg = targetEl.closest('.chat-message');
             if (parentMsg) {
                 const fbHtml = `<div class="msg-feedback-actions">
                     <button class="btn-feedback icon-btn" onclick="window.openFeedbackModal('${parentMsg.id}')" title="提供卦例反馈">
                         <span class="fb-icon" style="font-size:1.1rem">📋</span> 卦例点评
                     </button>
+                </div>
+                <div class="msg-bottom-actions">
+                    <button class="btn-new-case-inline" onclick="window.startNewCaseFromChat()">🔄 新起一卦</button>
                 </div>`;
                 targetEl.insertAdjacentHTML('beforeend', fbHtml);
             }
@@ -519,7 +493,6 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
             $('#chat-status').textContent = '错误';
             $('#btn-stop-generate')?.classList.add('hidden');
             $('#btn-continue-generate')?.classList.remove('hidden');
-            $('#chat-input-area').classList.remove('hidden');
 
             const rawMsg = String(err?.message || '');
             const isNetworkLikeError = /load failed|failed to fetch|network|timeout|internet|503|504|502/i.test(rawMsg);

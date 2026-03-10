@@ -250,9 +250,9 @@ function bindEvents() {
     window.handleDivine = handleDivineMain;
     $('#btn-divine')?.addEventListener('click', handleDivineMain);
 
-    // Chat follow-up
-    $('#btn-chat-send')?.addEventListener('click', handleChatFollowUp);
-    $('#btn-new-case-chat')?.addEventListener('click', startNewCase);
+    // 新起一卦（AI 回复底部按钮回调）
+    window.startNewCaseFromChat = startNewCase;
+
     $('#input-chat')?.addEventListener('input', handleTextInputChange);
     $('#btn-time-divine')?.addEventListener('click', handleTimeDivineAuto);
     $('#btn-quick-parse')?.addEventListener('click', handleQuickParse);
@@ -262,7 +262,6 @@ function bindEvents() {
         $('#btn-stop-generate').classList.add('hidden');
         $('#btn-continue-generate')?.classList.remove('hidden');
         $('#chat-status').textContent = '已暂停';
-        $('#chat-input-area').classList.remove('hidden');
     });
     $('#btn-continue-generate')?.addEventListener('click', () => {
         $('#btn-continue-generate').classList.add('hidden');
@@ -457,7 +456,6 @@ function loadHistoryRecord(id) {
         $('#input-chat').value = record.question || '';
         $('#chat-messages').innerHTML = '';
         $('#ai-chat').classList.remove('hidden');
-        $('#chat-input-area').classList.remove('hidden');
         $('#btn-divine').classList.add('hidden');
         $('#btn-time-divine')?.classList.add('hidden');
         $('#btn-quick-parse')?.classList.add('hidden');
@@ -512,7 +510,6 @@ function startNewCase() {
     $('#divination-console').classList.remove('hidden');
     $('#chat-messages').innerHTML = '';
     $('#ai-chat').classList.add('hidden');
-    $('#chat-input-area').classList.add('hidden');
     $('#btn-divine').classList.add('hidden');
     $('#btn-time-divine')?.classList.remove('hidden');
     $('#btn-quick-parse')?.classList.add('hidden');
@@ -576,7 +573,6 @@ async function handleDivineMain() {
         return;
     }
     $('#ai-chat').classList.remove('hidden');
-    $('#chat-input-area').classList.add('hidden');
     $('#btn-divine').classList.add('hidden');
 
 
