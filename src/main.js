@@ -252,6 +252,7 @@ function bindEvents() {
 
     // Chat follow-up
     $('#btn-chat-send')?.addEventListener('click', handleChatFollowUp);
+    $('#btn-new-case-chat')?.addEventListener('click', startNewCase);
     $('#input-chat')?.addEventListener('input', handleTextInputChange);
     $('#btn-time-divine')?.addEventListener('click', handleTimeDivineAuto);
     $('#btn-quick-parse')?.addEventListener('click', handleQuickParse);

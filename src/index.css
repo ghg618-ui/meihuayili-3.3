@@ -1108,15 +1108,30 @@ body {
   position: relative;
   height: 44px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-new-case-chat {
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  white-space: nowrap;
+}
+
+.btn-new-case-chat:hover {
+  color: var(--accent-plum);
+  border-color: var(--accent-plum);
+  background: var(--bg-secondary);
 }
 
 .btn-chat-send {
-  position: absolute;
-  right: 10px;
-  top: 8px;
-  bottom: 8px;
-  padding: 0 16px;
+  padding: 6px 16px;
   background: var(--accent-plum);
   color: white;
   border: none;
@@ -3162,6 +3177,17 @@ input[type=number] {
   background: linear-gradient(135deg, #1177bb 0%, #1a8ad4 100%);
   color: #ffffff;
   box-shadow: 0 4px 12px rgba(0, 122, 204, 0.35);
+}
+
+[data-theme="dark"] .btn-new-case-chat {
+  color: #b0b0b0;
+  border-color: #444;
+}
+
+[data-theme="dark"] .btn-new-case-chat:hover {
+  color: #4a9eff;
+  border-color: #4a9eff;
+  background: #2a2d2e;
 }
 
 [data-theme="dark"] #hexagram-display,
