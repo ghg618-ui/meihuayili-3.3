@@ -1590,27 +1590,6 @@ body {
     display: none !important;
   }
 
-  /* 手机端顶部新起一卦按钮 */
-  .btn-new-case-mobile:not(.hidden) {
-    display: inline-block;
-    padding: 5px 14px;
-    background: var(--accent-plum);
-    color: white;
-    border: none;
-    border-radius: 100px;
-    font-size: 0.78rem;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: var(--transition-smooth);
-    letter-spacing: 0.04em;
-  }
-
-  .btn-new-case-mobile:active {
-    transform: scale(0.95);
-    opacity: 0.85;
-  }
-
   /* 主题按钮只保留图标，隐藏文字 */
   .theme-label {
     display: none;
@@ -2230,6 +2209,49 @@ body {
 /* 桌面端隐藏手机专属按钮 */
 .btn-new-case-mobile {
   display: none;
+}
+
+/* 手机端悬浮“新起一卦”按钮 */
+.btn-new-case-fab {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .btn-new-case-fab:not(.hidden) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 24px;
+    right: 16px;
+    z-index: 999;
+    padding: 10px 20px;
+    background: var(--accent-plum);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(93, 43, 93, 0.35);
+    letter-spacing: 0.04em;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fab-pop-in 0.3s ease-out;
+  }
+
+  .btn-new-case-fab:active {
+    transform: scale(0.92);
+  }
+}
+
+@keyframes fab-pop-in {
+  from { opacity: 0; transform: scale(0.6) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+[data-theme="dark"] .btn-new-case-fab:not(.hidden) {
+  background: #0e639c;
+  box-shadow: 0 4px 16px rgba(14, 99, 156, 0.4);
 }
 
 @keyframes fadeIn {
