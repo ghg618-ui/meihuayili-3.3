@@ -1728,8 +1728,8 @@ body {
   }
 
   .hero-actions button {
-    width: 100%;
-    padding: 14px;
+    width: auto;
+    padding: 14px 32px;
     font-size: 1rem;
   }
 

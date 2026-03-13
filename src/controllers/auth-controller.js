@@ -51,9 +51,8 @@ export function updateUIForAuth() {
                 userQuota.style.display = 'inline-block';
                 userQuota.style.color = 'var(--accent-plum)';
             } else {
-                const q = getUserQuota();
-                userQuota.textContent = `剩${q}次`;
-                userQuota.style.display = 'inline-block';
+                userQuota.textContent = '';
+                userQuota.style.display = 'none';
                 userQuota.style.color = '';
             }
         }
