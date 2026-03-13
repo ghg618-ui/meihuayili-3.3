@@ -2982,16 +2982,29 @@ input[type=number] {
 /* WeChat promo line */
 .wechat-promo {
   text-align: center;
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  margin-top: 10px;
+  margin-top: 14px;
+  padding: 10px 16px;
+  background: rgba(93, 43, 93, 0.04);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  transition: all 0.2s;
 }
 .wechat-promo:hover {
-  opacity: 1;
+  background: rgba(93, 43, 93, 0.08);
+  border-color: var(--accent-plum);
+}
+.wechat-promo-text {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.wechat-promo-hint {
+  display: block;
+  font-size: 0.78rem;
   color: var(--accent-plum);
+  margin-top: 3px;
+  opacity: 0.8;
 }
 
 /* QR Code modal */
@@ -3349,11 +3362,15 @@ input[type=number] {
 }
 
 [data-theme="dark"] .wechat-promo {
-  color: #888;
+  background: rgba(255,255,255,0.04);
+  border-color: #444;
 }
 [data-theme="dark"] .wechat-promo:hover {
-  color: #4a9eff;
+  background: rgba(255,255,255,0.08);
+  border-color: #4a9eff;
 }
+[data-theme="dark"] .wechat-promo-text { color: #b0b0b0; }
+[data-theme="dark"] .wechat-promo-hint { color: #4a9eff; }
 [data-theme="dark"] .qrcode-card {
   background: #2a2d2e;
   box-shadow: 0 20px 60px rgba(0,0,0,0.5);
