@@ -166,7 +166,6 @@ export async function handleAuthSubmit(renderHistory) {
         updateUIForAuth();
         renderHistory();
         closeModal('modal-auth');
-        showToast(`已以此身份进入：${user.name}`, 'success');
     } else {
         showToast(user?.error || '认证失败，请检查用户名密码', 'error');
     }
