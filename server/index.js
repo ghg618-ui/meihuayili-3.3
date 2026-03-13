@@ -76,6 +76,13 @@ app.use(cors({
 
 app.use(express.json({ limit: '1mb' }));
 
+// ===== 托管前端静态文件（国内加速） =====
+const __serverDir = dirname(fileURLToPath(import.meta.url));
+const distPath = join(__serverDir, '..', 'dist');
+if (existsSync(distPath)) {
+    app.use(express.static(distPath, { maxAge: '7d' }));
+}
+
 // ===== 健康检查 =====
 app.get('/health', (_req, res) => {
     const configured = ROUTES.filter(r => r.key).map(r => r.name);
@@ -466,6 +473,14 @@ app.post('/api/chat', async (req, res) => {
         }
     }
 });
+
+// ===== SPA 回退：非API请求返回 index.html =====
+if (existsSync(distPath)) {
+    app.get('*', (req, res) => {
+        if (req.path.startsWith('/api/') || req.path === '/health') return;
+        res.sendFile(join(distPath, 'index.html'));
+    });
+}
 
 app.listen(PORT, () => {
     console.log(`\n🌸 梅花义理代理服务已启动`);
