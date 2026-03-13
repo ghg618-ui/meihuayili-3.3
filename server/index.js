@@ -151,12 +151,18 @@ function saveUsers(users) {
 const SAFE_NAME_RE = /^[\w\u4e00-\u9fa5]{1,20}$/;
 function safeFileName(name) {
     if (!SAFE_NAME_RE.test(name)) return null;
-    return name;
+    return name.toLowerCase();
+}
+
+// 统一将用户名转小写，避免大小写不同导致重复账户
+function normalizeName(raw) {
+    return (raw || '').trim().toLowerCase();
 }
 
 // ===== 用户注册 =====
 app.post('/api/register', (req, res) => {
-    const { name, passwordHash, email } = req.body;
+    const { passwordHash, email } = req.body;
+    const name = normalizeName(req.body.name);
     if (!name || !passwordHash) return res.status(400).json({ error: '缺少用户名或密码' });
     if (!SAFE_NAME_RE.test(name)) return res.status(400).json({ error: '用户名格式不合法' });
 
@@ -177,7 +183,8 @@ app.post('/api/register', (req, res) => {
 
 // ===== 用户登录 =====
 app.post('/api/login', (req, res) => {
-    const { name, passwordHash } = req.body;
+    const { passwordHash } = req.body;
+    const name = normalizeName(req.body.name);
     if (!name || !passwordHash) return res.status(400).json({ error: '缺少用户名或密码' });
 
     const users = loadUsers();
@@ -196,7 +203,7 @@ app.post('/api/login', (req, res) => {
 // ===== 管理员统计 =====
 const ADMIN_LIST = ['admin', 'gonghg'];
 app.get('/api/admin/stats', (req, res) => {
-    const { admin } = req.query;
+    const admin = normalizeName(req.query.admin);
     if (!admin || !ADMIN_LIST.includes(admin)) {
         return res.status(403).json({ error: '无权限' });
     }
@@ -207,7 +214,8 @@ app.get('/api/admin/stats', (req, res) => {
 
 // ===== 绑定邮箱 =====
 app.post('/api/bind-email', (req, res) => {
-    const { name, email } = req.body;
+    const name = normalizeName(req.body.name);
+    const { email } = req.body;
     if (!name || !email) return res.status(400).json({ error: '缺少用户名或邮箱' });
 
     const cleanEmail = email.trim().toLowerCase();
@@ -226,7 +234,8 @@ app.post('/api/bind-email', (req, res) => {
 
 // ===== 修改密码 =====
 app.post('/api/change-password', (req, res) => {
-    const { name, oldPasswordHash, newPasswordHash } = req.body;
+    const name = normalizeName(req.body.name);
+    const { oldPasswordHash, newPasswordHash } = req.body;
     if (!name || !oldPasswordHash || !newPasswordHash) {
         return res.status(400).json({ error: '缺少必填字段' });
     }
@@ -247,7 +256,9 @@ app.post('/api/change-password', (req, res) => {
 
 // ===== 管理员重置密码 =====
 app.post('/api/admin/reset-password', (req, res) => {
-    const { admin, targetUser, newPasswordHash } = req.body;
+    const admin = normalizeName(req.body.admin);
+    const targetUser = normalizeName(req.body.targetUser);
+    const { newPasswordHash } = req.body;
     if (!admin || !ADMIN_LIST.includes(admin)) {
         return res.status(403).json({ error: '无权限' });
     }
@@ -266,7 +277,7 @@ app.post('/api/admin/reset-password', (req, res) => {
 
 // ===== 发送验证码（忘记密码） =====
 app.post('/api/send-code', async (req, res) => {
-    const { name } = req.body;
+    const name = normalizeName(req.body.name);
     if (!name) return res.status(400).json({ error: '请输入用户名' });
 
     const users = loadUsers();
@@ -297,7 +308,8 @@ app.post('/api/send-code', async (req, res) => {
 
 // ===== 验证码重置密码 =====
 app.post('/api/reset-password', (req, res) => {
-    const { name, code, newPasswordHash } = req.body;
+    const name = normalizeName(req.body.name);
+    const { code, newPasswordHash } = req.body;
     if (!name || !code || !newPasswordHash) {
         return res.status(400).json({ error: '缺少必要信息' });
     }

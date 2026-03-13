@@ -23,6 +23,7 @@ export function saveRegisteredUsers(users) {
 }
 
 export async function loginUser(name, password) {
+    name = name.trim().toLowerCase();
     const hp = hashPassword(password);
 
     // 优先服务器验证
@@ -64,6 +65,7 @@ export async function loginUser(name, password) {
 }
 
 export async function registerUser(name, password, email) {
+    name = name.trim().toLowerCase();
     const hp = hashPassword(password);
     const cleanEmail = (email || '').trim().toLowerCase();
 
@@ -100,6 +102,7 @@ export async function registerUser(name, password, email) {
 }
 
 export async function sendResetCode(name) {
+    name = (name || '').trim().toLowerCase();
     const resp = await fetch(`${API_BASE}/api/send-code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,6 +112,7 @@ export async function sendResetCode(name) {
 }
 
 export async function resetPassword(name, code, newPassword) {
+    name = (name || '').trim().toLowerCase();
     const hp = hashPassword(newPassword);
     const resp = await fetch(`${API_BASE}/api/reset-password`, {
         method: 'POST',
