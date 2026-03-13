@@ -80,7 +80,10 @@ app.use(express.json({ limit: '1mb' }));
 const __serverDir = dirname(fileURLToPath(import.meta.url));
 const distPath = join(__serverDir, '..', 'dist');
 if (existsSync(distPath)) {
-    app.use(express.static(distPath, { maxAge: '7d' }));
+    // assets 目录（带哈希的 JS/CSS）长期缓存
+    app.use('/assets', express.static(join(distPath, 'assets'), { maxAge: '30d' }));
+    // 其他文件（HTML、manifest等）不缓存，每次都拿最新
+    app.use(express.static(distPath, { maxAge: 0, etag: false }));
 }
 
 // ===== 健康检查 =====
