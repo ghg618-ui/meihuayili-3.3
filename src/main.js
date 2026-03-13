@@ -35,7 +35,8 @@ import {
     showProfilePanel,
     hideProfilePanel,
     handleBindEmail,
-    handleAdminResetPassword
+    handleAdminResetPassword,
+    handleChangePassword
 } from './controllers/auth-controller.js';
 import { hasProAccess } from './storage/auth.js';
 import { handleSaveSettings, loadSettingsToModal } from './controllers/settings-controller.js';
@@ -222,6 +223,7 @@ function bindEvents() {
     $('#btn-reset-submit')?.addEventListener('click', handleResetSubmit);
     $('#btn-bind-email')?.addEventListener('click', handleBindEmail);
     $('#btn-admin-reset')?.addEventListener('click', handleAdminResetPassword);
+    $('#btn-change-pwd')?.addEventListener('click', handleChangePassword);
     $('#btn-logout-header')?.addEventListener('click', () => handleLogout(renderHistory, startNewCase));
     $('#btn-logout-sidebar')?.addEventListener('click', () => handleLogout(renderHistory, startNewCase));
     $('#btn-close-auth')?.addEventListener('click', () => { hideProfilePanel(); closeModal('modal-auth'); });

@@ -214,6 +214,27 @@ app.post('/api/bind-email', (req, res) => {
     res.json({ success: true });
 });
 
+// ===== 修改密码 =====
+app.post('/api/change-password', (req, res) => {
+    const { name, oldPasswordHash, newPasswordHash } = req.body;
+    if (!name || !oldPasswordHash || !newPasswordHash) {
+        return res.status(400).json({ error: '缺少必填字段' });
+    }
+    const users = loadUsers();
+    const u = users[name];
+    if (!u) return res.status(404).json({ error: '用户不存在' });
+
+    if (u.passwordHash !== oldPasswordHash && u.password !== oldPasswordHash) {
+        return res.status(401).json({ error: '当前密码不正确' });
+    }
+
+    users[name].passwordHash = newPasswordHash;
+    delete users[name].password;
+    saveUsers(users);
+    console.log(`[auth] 用户修改密码: ${name}`);
+    res.json({ success: true });
+});
+
 // ===== 管理员重置密码 =====
 app.post('/api/admin/reset-password', (req, res) => {
     const { admin, targetUser, newPasswordHash } = req.body;

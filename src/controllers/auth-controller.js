@@ -2,7 +2,7 @@
  * Auth Controller - Login/Register/Logout UI logic
  */
 import { $, showToast } from '../utils/dom.js';
-import { loginUser, registerUser, logoutUser, hasProAccess, getUserQuota, redeemVipCode, isVipUser, getGuestQuota, sendResetCode, resetPassword, bindEmail, getAdminStats, getCurrentUser, adminResetPassword } from '../storage/auth.js';
+import { loginUser, registerUser, logoutUser, hasProAccess, getUserQuota, redeemVipCode, isVipUser, getGuestQuota, sendResetCode, resetPassword, bindEmail, getAdminStats, getCurrentUser, adminResetPassword, changePassword } from '../storage/auth.js';
 import { MODEL_REGISTRY } from '../storage/settings.js';
 import { loadHistory, mergeCloudHistory } from '../storage/history.js';
 import { closeModal } from '../ui/modals.js';
@@ -418,5 +418,36 @@ export async function handleAdminResetPassword() {
     } finally {
         btn.disabled = false;
         btn.textContent = '重置该用户密码';
+    }
+}
+
+// ===== 用户修改密码 =====
+export async function handleChangePassword() {
+    const user = getCurrentUser();
+    if (!user) return;
+
+    const oldPwd = $('#profile-old-pwd')?.value;
+    const newPwd = $('#profile-new-pwd')?.value;
+    if (!oldPwd || !newPwd) { showToast('请填写当前密码和新密码', 'error'); return; }
+    if (newPwd.length < 4) { showToast('新密码至少4个字符', 'error'); return; }
+
+    const btn = $('#btn-change-pwd');
+    btn.disabled = true;
+    btn.textContent = '修改中...';
+
+    try {
+        const data = await changePassword(user.name, oldPwd, newPwd);
+        if (data.success) {
+            showToast('密码修改成功！', 'success');
+            $('#profile-old-pwd').value = '';
+            $('#profile-new-pwd').value = '';
+        } else {
+            showToast(data.error || '修改失败', 'error');
+        }
+    } catch {
+        showToast('网络错误', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '确认修改';
     }
 }

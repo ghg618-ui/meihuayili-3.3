@@ -142,6 +142,17 @@ export async function adminResetPassword(adminName, targetUser, newPassword) {
     return resp.json();
 }
 
+export async function changePassword(name, oldPassword, newPassword) {
+    const oldHash = hashPassword(oldPassword);
+    const newHash = hashPassword(newPassword);
+    const resp = await fetch(`${API_BASE}/api/change-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, oldPasswordHash: oldHash, newPasswordHash: newHash }),
+    });
+    return resp.json();
+}
+
 export function getCurrentUser() {
     try {
         return JSON.parse(localStorage.getItem('meihua_current_user') || 'null');
