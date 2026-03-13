@@ -132,6 +132,16 @@ export async function getAdminStats(adminName) {
     return resp.json();
 }
 
+export async function adminResetPassword(adminName, targetUser, newPassword) {
+    const hp = hashPassword(newPassword);
+    const resp = await fetch(`${API_BASE}/api/admin/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin: adminName, targetUser, newPasswordHash: hp }),
+    });
+    return resp.json();
+}
+
 export function getCurrentUser() {
     try {
         return JSON.parse(localStorage.getItem('meihua_current_user') || 'null');

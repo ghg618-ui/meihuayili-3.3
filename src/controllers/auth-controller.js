@@ -242,6 +242,12 @@ export async function handleSendCode() {
                 }
             }, 1000);
         } else {
+            // 如果没绑定邮箱，显示更醒目的提示
+            const hint = $('#reset-email-hint');
+            if (data.error && data.error.includes('未绑定邮箱') && hint) {
+                hint.innerHTML = `<span style="color:var(--status-warning,#e6a23c);">${data.error}</span>`;
+                $('#reset-code-section')?.classList.remove('hidden');
+            }
             showToast(data.error || '发送失败', 'error');
             btn.disabled = false;
             btn.textContent = '发送验证码到邮箱';
