@@ -814,11 +814,14 @@ document.addEventListener('DOMContentLoaded', init);
 // ---- PWA Install Banner ----
 (function() {
     // 已经以 standalone 模式运行（已安装），不显示
-    if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) return;
+    if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
+        localStorage.setItem('pwa_installed', '1');
+        return;
+    }
     // 电脑端不显示，仅手机/平板
     if (!/Mobi|Android|iPad|iPhone|iPod|MicroMessenger/.test(navigator.userAgent)) return;
-    // 用户之前关闭过，本次会话不再打扰
-    if (sessionStorage.getItem('pwa_dismissed')) return;
+    // 用户已安装过或关闭过，不再打扰
+    if (localStorage.getItem('pwa_installed') || localStorage.getItem('pwa_dismissed')) return;
 
     const banner = document.getElementById('pwa-install-banner');
     const btnInstall = document.getElementById('btn-pwa-install');
@@ -853,6 +856,7 @@ document.addEventListener('DOMContentLoaded', init);
             deferredPrompt.userChoice.then(() => {
                 deferredPrompt = null;
                 banner.classList.add('hidden');
+                localStorage.setItem('pwa_installed', '1');
             });
         } else if (isWeChat) {
             // 微信内: 引导用户用浏览器打开
@@ -865,7 +869,7 @@ document.addEventListener('DOMContentLoaded', init);
 
     btnDismiss?.addEventListener('click', () => {
         banner.classList.add('hidden');
-        sessionStorage.setItem('pwa_dismissed', '1');
+        localStorage.setItem('pwa_dismissed', '1');
     });
 
     btnIosClose?.addEventListener('click', () => {
