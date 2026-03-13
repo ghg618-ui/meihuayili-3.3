@@ -2,7 +2,7 @@
  * Auth Controller - Login/Register/Logout UI logic
  */
 import { $, showToast } from '../utils/dom.js';
-import { loginUser, registerUser, logoutUser, hasProAccess, getUserQuota } from '../storage/auth.js';
+import { loginUser, registerUser, logoutUser, hasProAccess, getUserQuota, redeemVipCode, isVipUser, getGuestQuota } from '../storage/auth.js';
 import { MODEL_REGISTRY } from '../storage/settings.js';
 import { loadHistory, mergeCloudHistory } from '../storage/history.js';
 import { closeModal } from '../ui/modals.js';
@@ -33,17 +33,25 @@ export function updateUIForAuth() {
 
     if (state.currentUser) {
         const isPro = hasProAccess();
+        const vip = isVipUser();
         if (userLabel) userLabel.textContent = state.currentUser.name;
         if (userAvatar) userAvatar.textContent = state.currentUser.name.charAt(0);
         
         if (userQuota) {
-            if (!isPro) {
-                userQuota.textContent = '体验版';
-                userQuota.style.display = 'inline-block';
-            } else {
+            if (isPro) {
                 userQuota.textContent = 'Pro: 无限制';
                 userQuota.style.display = 'inline-block';
                 userQuota.style.color = 'var(--status-success)';
+            } else if (vip) {
+                const q = getUserQuota();
+                userQuota.textContent = `VIP · 今日剩余${q}次`;
+                userQuota.style.display = 'inline-block';
+                userQuota.style.color = 'var(--accent-plum)';
+            } else {
+                const q = getUserQuota();
+                userQuota.textContent = `今日剩余${q}次`;
+                userQuota.style.display = 'inline-block';
+                userQuota.style.color = '';
             }
         }
 
@@ -69,9 +77,14 @@ export function updateUIForAuth() {
             }
         }
     } else {
-        if (userLabel) userLabel.textContent = '未登录';
-        if (userAvatar) userAvatar.textContent = '?';
-        if (userQuota) userQuota.style.display = 'none';
+        if (userLabel) userLabel.textContent = '游客';
+        if (userAvatar) userAvatar.textContent = '客';
+        if (userQuota) {
+            const gq = getGuestQuota();
+            userQuota.textContent = `体验${gq}次`;
+            userQuota.style.display = 'inline-block';
+            userQuota.style.color = '';
+        }
         if (logoutBtn) logoutBtn.style.display = 'none';
         if (sidebarFooter) sidebarFooter.style.display = 'none';
         if (logoutSidebar) logoutSidebar.style.display = 'none';
@@ -155,5 +168,20 @@ export function handleLogout(renderHistory, startNewCase) {
     updateUIForAuth();
     renderHistory();
     startNewCase();
-    showToast('已退出院馆', 'info');
+    showToast('已退出', 'info');
+}
+
+export function handleRedeemVip() {
+    const input = $('#vip-code-input');
+    if (!input) return;
+    const code = input.value.trim();
+    if (!code) { showToast('请输入兑换码', 'error'); return; }
+    const result = redeemVipCode(code);
+    if (result.success) {
+        showToast('🎉 VIP兑换成功！每日可用15次', 'success');
+        input.value = '';
+        updateUIForAuth();
+    } else {
+        showToast(result.error, 'error');
+    }
 }

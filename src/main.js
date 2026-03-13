@@ -26,7 +26,8 @@ import {
     switchToRegisterMode,
     updateUIForAuth,
     handleAuthSubmit,
-    handleLogout
+    handleLogout,
+    handleRedeemVip
 } from './controllers/auth-controller.js';
 import { hasProAccess } from './storage/auth.js';
 import { handleSaveSettings, loadSettingsToModal } from './controllers/settings-controller.js';
@@ -199,6 +200,7 @@ function bindEvents() {
     $('#tab-login')?.addEventListener('click', switchToLoginMode);
     $('#tab-register')?.addEventListener('click', switchToRegisterMode);
     $('#btn-auth-submit')?.addEventListener('click', () => handleAuthSubmit(renderHistory));
+    $('#btn-redeem-vip')?.addEventListener('click', handleRedeemVip);
     $('#btn-logout-header')?.addEventListener('click', () => handleLogout(renderHistory, startNewCase));
     $('#btn-logout-sidebar')?.addEventListener('click', () => handleLogout(renderHistory, startNewCase));
     $('#btn-close-auth')?.addEventListener('click', () => closeModal('modal-auth'));

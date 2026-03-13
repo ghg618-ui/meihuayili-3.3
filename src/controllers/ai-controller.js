@@ -26,17 +26,15 @@ export async function performAIAnalysis(question, renderHistory, isFollowUp = fa
         }
 
         // 检查用户额度，只有新断卦才扣除额度，追问不扣额度
-        if (!state.currentUser) {
-            showToast('未登录，无法进行解卦，请先登录', 'error');
-            openModal('modal-auth');
-            return;
-        }
-
         if (!isFollowUp) {
             const quotaSuccess = decreaseUserQuota();
             if (!quotaSuccess) {
-                showToast('卦不妄起，今日推演次数已用完，明天再来探索吧 ✨', 'error');
-                // 如果后续有付费引导，可以直接在这里弹窗
+                if (!state.currentUser) {
+                    showToast('游客体验次数已用完，注册可获得更多次数 ✨', 'error');
+                    openModal('modal-auth');
+                } else {
+                    showToast('卦不妄起，今日推演次数已用完，明天再来探索吧 ✨', 'error');
+                }
                 return;
             }
             // 刷新导航栏的今日额度显示

@@ -134,7 +134,7 @@ export function hasProAccess() {
 
 export function getUserQuota() {
     const user = getCurrentUser();
-    if (!user) return 0;
+    if (!user) return getGuestQuota();
     if (hasProAccess()) return 999;
 
     const users = getRegisteredUsers();
@@ -147,13 +147,13 @@ export function getUserQuota() {
         userData.usedQuota = 0;
         saveRegisteredUsers(users);
     }
-    const maxQuota = 15;
+    const maxQuota = userData.vipCode ? 15 : 10;
     return Math.max(0, maxQuota - (userData.usedQuota || 0));
 }
 
 export function decreaseUserQuota() {
     const user = getCurrentUser();
-    if (!user) return false;
+    if (!user) return decreaseGuestQuota();
     if (hasProAccess()) return true;
 
     const users = getRegisteredUsers();
@@ -166,10 +166,71 @@ export function decreaseUserQuota() {
         userData.usedQuota = 0;
     }
     
-    if ((userData.usedQuota || 0) >= 15) return false;
+    const maxQuota = userData.vipCode ? 15 : 10;
+    if ((userData.usedQuota || 0) >= maxQuota) return false;
 
     userData.usedQuota = (userData.usedQuota || 0) + 1;
     saveRegisteredUsers(users);
     return true;
 }
 
+// ===== 游客额度系统 =====
+const GUEST_KEY = 'meihua_guest_quota';
+const GUEST_MAX = 3;
+
+function getGuestData() {
+    try {
+        return JSON.parse(localStorage.getItem(GUEST_KEY) || '{}');
+    } catch { return {}; }
+}
+
+function saveGuestData(data) {
+    localStorage.setItem(GUEST_KEY, JSON.stringify(data));
+}
+
+export function getGuestQuota() {
+    const data = getGuestData();
+    const today = new Date().toISOString().split('T')[0];
+    if (data.date !== today) return GUEST_MAX;
+    return Math.max(0, GUEST_MAX - (data.used || 0));
+}
+
+function decreaseGuestQuota() {
+    const data = getGuestData();
+    const today = new Date().toISOString().split('T')[0];
+    if (data.date !== today) {
+        data.date = today;
+        data.used = 0;
+    }
+    if ((data.used || 0) >= GUEST_MAX) return false;
+    data.used = (data.used || 0) + 1;
+    saveGuestData(data);
+    return true;
+}
+
+// ===== VIP 码兑换 =====
+const VALID_VIP_CODES = ['YIHONG2026', 'MEIHUA888'];
+
+export function redeemVipCode(code) {
+    const user = getCurrentUser();
+    if (!user) return { error: '请先登录再兑换' };
+
+    const trimmed = (code || '').trim().toUpperCase();
+    if (!VALID_VIP_CODES.includes(trimmed)) return { error: '兑换码无效' };
+
+    const users = getRegisteredUsers();
+    const userData = users[user.name];
+    if (!userData) return { error: '用户数据异常' };
+    if (userData.vipCode) return { error: '您已兑换过VIP码' };
+
+    userData.vipCode = trimmed;
+    saveRegisteredUsers(users);
+    return { success: true };
+}
+
+export function isVipUser() {
+    const user = getCurrentUser();
+    if (!user) return false;
+    const users = getRegisteredUsers();
+    return !!users[user.name]?.vipCode;
+}
