@@ -628,6 +628,7 @@ function handleCastByTime() {
     }
     state.currentResult = DivinationEngine.castByTime(hour, min);
     renderResult(state.currentResult);
+    $('#btn-divine').classList.remove('hidden');
     showToast('时空卦象已成', 'success');
 }
 
@@ -651,6 +652,7 @@ function handleCastByNumber() {
         state.currentResult = DivinationEngine.castByTwoNumbers(num1, num2);
     }
     renderResult(state.currentResult);
+    $('#btn-divine').classList.remove('hidden');
     showToast('报数起卦已成', 'success');
 }
 
@@ -660,6 +662,7 @@ function handleCastByManual() {
     const yao = parseInt($('#select-yao').value);
     state.currentResult = DivinationEngine.castManual(up, lo, yao);
     renderResult(state.currentResult);
+    $('#btn-divine').classList.remove('hidden');
     showToast('手动选卦已完成', 'success');
 }
 
@@ -707,7 +710,6 @@ function renderResult(result, isNew = true) {
         $('#hexagram-display').classList.add('hidden');  // 普通用户：隐藏排盘
     }
     
-    $('#btn-divine').classList.remove('hidden');
     $('#divination-console').classList.add('hidden');
 }
 
