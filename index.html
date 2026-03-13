@@ -311,8 +311,8 @@
             display: none;
         }
     </style>
-  <script type="module" crossorigin src="/assets/index-DZMVGEXk.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BZb9_5Wb.css">
+  <script type="module" crossorigin src="/assets/index-CguWlz6w.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CSqf_TRX.css">
 </head>
 
 <body>
@@ -652,6 +652,15 @@
                 <button class="btn-primary" style="width: 100%; margin-top: 16px;"
                     onclick="window.submitFeedback()">提交反馈</button>
             </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal-overlay hidden" id="modal-qrcode" onclick="this.classList.add('hidden')">
+        <div class="qrcode-card" onclick="event.stopPropagation()">
+            <img src="/qrcode-yhl.png" alt="易泓录二维码" class="qrcode-img">
+            <p class="qrcode-label">长按识别 · 关注「易泓录」</p>
+            <p class="qrcode-sub">更多易学智慧，尽在掌中</p>
         </div>
     </div>
 
