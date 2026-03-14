@@ -236,6 +236,14 @@ export function updateUIForAuth() {
             modelSelect.style.display = 'none';
         }
     }
+
+    window.requestAnimationFrame(() => {
+        const btnTime = $('#btn-time-divine');
+        if (!btnTime) return;
+        btnTime.blur();
+        btnTime.classList.remove('breathing');
+        $('#input-chat')?.dispatchEvent(new Event('input', { bubbles: true }));
+    });
 }
 
 const MAX_USERNAME_LEN = 20;
