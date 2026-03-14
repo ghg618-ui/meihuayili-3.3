@@ -83,6 +83,18 @@ async function clearCurrentUserFromIndexedDb() {
     db.close();
 }
 
+function cacheCurrentUserLocally(currentUser) {
+    const users = getRegisteredUsers();
+    if (!users[currentUser.name]) {
+        users[currentUser.name] = {
+            name: currentUser.name,
+            created: new Date().toISOString(),
+        };
+        saveRegisteredUsers(users);
+    }
+    persistCurrentUser(currentUser);
+}
+
 function persistCurrentUser(currentUser) {
     const serialized = JSON.stringify(currentUser);
     localStorage.setItem(CURRENT_USER_KEY, serialized);
@@ -127,6 +139,7 @@ export async function loginUser(name, password) {
     try {
         const resp = await fetch(`${API_BASE}/api/login`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, passwordHash: hp }),
         });
@@ -139,7 +152,7 @@ export async function loginUser(name, password) {
                 saveRegisteredUsers(users);
             }
             const currentUser = { name, hasEmail: !!data.user?.hasEmail };
-            persistCurrentUser(currentUser);
+            cacheCurrentUserLocally(currentUser);
             return currentUser;
         }
         return { error: data.error || '用户名或密码错误', code: data.code };
@@ -155,7 +168,7 @@ export async function loginUser(name, password) {
     }
     if (user.password === hp || user.passwordHash === hp) {
         const currentUser = { name };
-        persistCurrentUser(currentUser);
+        cacheCurrentUserLocally(currentUser);
         return currentUser;
     }
     return { error: '密码错误', code: 'WRONG_PASSWORD' };
@@ -170,6 +183,7 @@ export async function registerUser(name, password, email) {
     try {
         const resp = await fetch(`${API_BASE}/api/register`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, passwordHash: hp, email: cleanEmail }),
         });
@@ -180,7 +194,7 @@ export async function registerUser(name, password, email) {
             users[name] = { name, password: hp, created: new Date().toISOString() };
             saveRegisteredUsers(users);
             const currentUser = { name };
-            persistCurrentUser(currentUser);
+            cacheCurrentUserLocally(currentUser);
             return currentUser;
         }
         return { error: data.error || '注册失败' };
@@ -194,7 +208,7 @@ export async function registerUser(name, password, email) {
     users[name] = { name, password: hp, created: new Date().toISOString() };
     saveRegisteredUsers(users);
     const currentUser = { name };
-    persistCurrentUser(currentUser);
+    cacheCurrentUserLocally(currentUser);
     return currentUser;
 }
 
@@ -281,11 +295,29 @@ export async function hydrateRememberedUser() {
         return indexedUser;
     }
 
+    try {
+        const resp = await fetch(`${API_BASE}/api/session/current`, {
+            credentials: 'include',
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success && data.user?.name) {
+            const currentUser = { name: data.user.name, hasEmail: !!data.user.hasEmail };
+            cacheCurrentUserLocally(currentUser);
+            return currentUser;
+        }
+    } catch (e) {
+        log.warn('服务器会话恢复失败', e);
+    }
+
     return null;
 }
 
 export function logoutUser() {
     clearCurrentUserPersistence();
+    fetch(`${API_BASE}/api/logout`, {
+        method: 'POST',
+        credentials: 'include',
+    }).catch((e) => log.warn('服务器退出登录失败', e));
 }
 
 /**

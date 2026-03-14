@@ -14,6 +14,7 @@ import cors from 'cors';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { randomBytes } from 'crypto';
 import { createTransport } from 'nodemailer';
 
 // 加载 .env 文件（密钥就放这里）
@@ -70,6 +71,7 @@ app.use(cors({
             cb(new Error(`不允许的来源: ${origin}`));
         }
     },
+    credentials: true,
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type'],
 }));
@@ -100,7 +102,10 @@ app.get('/health', (_req, res) => {
 const __dir = dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = join(__dir, 'data');
 const USERS_FILE = join(DATA_DIR, 'users.json');
+const SESSIONS_FILE = join(DATA_DIR, 'sessions.json');
 const HISTORY_DIR = join(DATA_DIR, 'history');
+const SESSION_COOKIE_NAME = 'meihua_session';
+const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 180;
 
 if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
 if (!existsSync(HISTORY_DIR)) mkdirSync(HISTORY_DIR, { recursive: true });
@@ -147,6 +152,94 @@ function saveUsers(users) {
     writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
 }
 
+function loadSessions() {
+    try { return JSON.parse(readFileSync(SESSIONS_FILE, 'utf8')); }
+    catch { return {}; }
+}
+
+function saveSessions(sessions) {
+    writeFileSync(SESSIONS_FILE, JSON.stringify(sessions, null, 2));
+}
+
+function pruneExpiredSessions(sessions) {
+    let changed = false;
+    const now = Date.now();
+    for (const [token, session] of Object.entries(sessions)) {
+        if (!session?.expiresAt || session.expiresAt <= now) {
+            delete sessions[token];
+            changed = true;
+        }
+    }
+    if (changed) saveSessions(sessions);
+}
+
+function createSession(name) {
+    const sessions = loadSessions();
+    pruneExpiredSessions(sessions);
+    const token = randomBytes(24).toString('hex');
+    sessions[token] = {
+        name,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + SESSION_TTL_MS,
+    };
+    saveSessions(sessions);
+    return token;
+}
+
+function getCookieValue(req, cookieName) {
+    const cookieHeader = req.headers.cookie || '';
+    const target = cookieHeader
+        .split(';')
+        .map(part => part.trim())
+        .find(part => part.startsWith(`${cookieName}=`));
+    if (!target) return null;
+    return decodeURIComponent(target.slice(cookieName.length + 1));
+}
+
+function getSessionUser(req) {
+    const token = getCookieValue(req, SESSION_COOKIE_NAME);
+    if (!token) return null;
+
+    const sessions = loadSessions();
+    pruneExpiredSessions(sessions);
+    const session = sessions[token];
+    if (!session?.name) return null;
+
+    session.expiresAt = Date.now() + SESSION_TTL_MS;
+    sessions[token] = session;
+    saveSessions(sessions);
+
+    return { token, name: session.name };
+}
+
+function destroySession(token) {
+    if (!token) return;
+    const sessions = loadSessions();
+    if (sessions[token]) {
+        delete sessions[token];
+        saveSessions(sessions);
+    }
+}
+
+function setSessionCookie(res, token) {
+    res.cookie(SESSION_COOKIE_NAME, token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        maxAge: SESSION_TTL_MS,
+        path: '/',
+    });
+}
+
+function clearSessionCookie(res) {
+    res.clearCookie(SESSION_COOKIE_NAME, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        path: '/',
+    });
+}
+
 // 用户名只能包含字母、数字、下划线、中文，防止路径遍历
 const SAFE_NAME_RE = /^[\w\u4e00-\u9fa5]{1,20}$/;
 function safeFileName(name) {
@@ -177,6 +270,7 @@ app.post('/api/register', (req, res) => {
 
     users[name] = { name, passwordHash, email: cleanEmail || '', created: new Date().toISOString() };
     saveUsers(users);
+    setSessionCookie(res, createSession(name));
     console.log(`[auth] 新用户注册: ${name}${cleanEmail ? ' (' + cleanEmail + ')' : ''}`);
     res.json({ success: true, user: { name } });
 });
@@ -194,10 +288,37 @@ app.post('/api/login', (req, res) => {
     }
     if (u.passwordHash === passwordHash || u.password === passwordHash) {
         console.log(`[auth] 用户登录: ${name}`);
+        setSessionCookie(res, createSession(name));
         res.json({ success: true, user: { name, hasEmail: !!u.email } });
     } else {
         res.status(401).json({ error: '密码错误', code: 'WRONG_PASSWORD' });
     }
+});
+
+app.get('/api/session/current', (req, res) => {
+    const sessionUser = getSessionUser(req);
+    if (!sessionUser?.name) {
+        clearSessionCookie(res);
+        return res.status(401).json({ success: false });
+    }
+
+    const users = loadUsers();
+    const user = users[sessionUser.name];
+    if (!user) {
+        destroySession(sessionUser.token);
+        clearSessionCookie(res);
+        return res.status(401).json({ success: false });
+    }
+
+    setSessionCookie(res, sessionUser.token);
+    res.json({ success: true, user: { name: user.name, hasEmail: !!user.email } });
+});
+
+app.post('/api/logout', (req, res) => {
+    const token = getCookieValue(req, SESSION_COOKIE_NAME);
+    destroySession(token);
+    clearSessionCookie(res);
+    res.json({ success: true });
 });
 
 // ===== 管理员统计 =====
