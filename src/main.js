@@ -827,9 +827,20 @@ document.addEventListener('DOMContentLoaded', init);
 
 // ---- PWA Install Banner ----
 (function() {
+    const markPwaPromptHandled = () => {
+        localStorage.setItem('pwa_dismissed', '1');
+    };
+
+    const hidePwaPrompts = () => {
+        document.getElementById('pwa-install-banner')?.classList.add('hidden');
+        document.getElementById('pwa-ios-guide')?.classList.add('hidden');
+        document.getElementById('pwa-wechat-guide')?.classList.add('hidden');
+    };
+
     // 已经以 standalone 模式运行（已安装），不显示
     if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
         localStorage.setItem('pwa_installed', '1');
+        markPwaPromptHandled();
         return;
     }
     // 电脑端不显示，仅手机/平板
@@ -871,26 +882,33 @@ document.addEventListener('DOMContentLoaded', init);
                 deferredPrompt = null;
                 banner.classList.add('hidden');
                 localStorage.setItem('pwa_installed', '1');
+                markPwaPromptHandled();
             });
         } else if (isWeChat) {
             // 微信内: 引导用户用浏览器打开
+            markPwaPromptHandled();
+            banner.classList.add('hidden');
             wechatGuide?.classList.remove('hidden');
         } else if (isIOS) {
             // iOS Safari: 显示手动引导
+            markPwaPromptHandled();
+            banner.classList.add('hidden');
             iosGuide?.classList.remove('hidden');
         }
     });
 
     btnDismiss?.addEventListener('click', () => {
-        banner.classList.add('hidden');
-        localStorage.setItem('pwa_dismissed', '1');
+        markPwaPromptHandled();
+        hidePwaPrompts();
     });
 
     btnIosClose?.addEventListener('click', () => {
-        iosGuide?.classList.add('hidden');
+        markPwaPromptHandled();
+        hidePwaPrompts();
     });
 
     btnWechatClose?.addEventListener('click', () => {
-        wechatGuide?.classList.add('hidden');
+        markPwaPromptHandled();
+        hidePwaPrompts();
     });
 })();
