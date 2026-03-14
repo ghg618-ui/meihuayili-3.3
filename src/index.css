@@ -1656,6 +1656,10 @@ body {
     margin-top: 12px;
   }
 
+  .sidebar-pwa-entry:not(.hidden) {
+    display: block;
+  }
+
   .btn-logout-sidebar {
     width: 100%;
     padding: 10px;
@@ -2534,6 +2538,39 @@ input[type=number] {
 /* 侧边栏底部退出区 — 桌面端完全不显示，只在手机端通过 JS 控制 */
 .sidebar-mobile-footer {
   display: none;
+}
+
+.sidebar-pwa-entry {
+  display: none;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.btn-sidebar-secondary {
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-sidebar-secondary:hover,
+.btn-sidebar-secondary:active {
+  border-color: var(--accent-plum);
+  color: var(--accent-plum);
+  background: var(--bg-secondary);
+}
+
+.sidebar-pwa-hint {
+  margin: 8px 4px 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-tertiary);
 }
 
 .sidebar-section-label {

@@ -837,16 +837,23 @@ document.addEventListener('DOMContentLoaded', init);
         document.getElementById('pwa-wechat-guide')?.classList.add('hidden');
     };
 
+    const showQuietPwaEntry = () => {
+        document.getElementById('sidebar-pwa-entry')?.classList.remove('hidden');
+    };
+
+    const hideQuietPwaEntry = () => {
+        document.getElementById('sidebar-pwa-entry')?.classList.add('hidden');
+    };
+
     // 已经以 standalone 模式运行（已安装），不显示
     if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
         localStorage.setItem('pwa_installed', '1');
         markPwaPromptHandled();
+        hideQuietPwaEntry();
         return;
     }
     // 电脑端不显示，仅手机/平板
     if (!/Mobi|Android|iPad|iPhone|iPod|MicroMessenger/.test(navigator.userAgent)) return;
-    // 用户已安装过或关闭过，不再打扰
-    if (localStorage.getItem('pwa_installed') || localStorage.getItem('pwa_dismissed')) return;
 
     const banner = document.getElementById('pwa-install-banner');
     const btnInstall = document.getElementById('btn-pwa-install');
@@ -855,50 +862,69 @@ document.addEventListener('DOMContentLoaded', init);
     const btnIosClose = document.getElementById('btn-pwa-ios-close');
     const wechatGuide = document.getElementById('pwa-wechat-guide');
     const btnWechatClose = document.getElementById('btn-pwa-wechat-close');
-    if (!banner) return;
+    const btnAddToHome = document.getElementById('btn-add-to-home');
+    if (!banner && !btnAddToHome) return;
 
     let deferredPrompt = null;
     const ua = navigator.userAgent;
     const isWeChat = /MicroMessenger/i.test(ua);
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+    const isInstalled = Boolean(localStorage.getItem('pwa_installed'));
+    const shouldSuppressBanner = Boolean(localStorage.getItem('pwa_dismissed'));
+
+    if (isInstalled) {
+        hidePwaPrompts();
+        hideQuietPwaEntry();
+        return;
+    }
 
     // iPhone/iPad 浏览器里无法可靠判断“是否已添加到主屏幕”，继续展示只会反复误报。
-    // 因此这里直接关闭浏览器端横幅，仅保留 Android 原生安装提示和微信内引导。
+    // 因此这里关闭浏览器端横幅，但保留侧边栏里的安静入口。
     if (isIOS && !isWeChat) {
-        markPwaPromptHandled();
         hidePwaPrompts();
-        return;
+        showQuietPwaEntry();
     }
 
     // Android Chrome: 捕获系统安装事件
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        banner.classList.remove('hidden');
+        showQuietPwaEntry();
+        if (!shouldSuppressBanner) banner?.classList.remove('hidden');
     });
 
     // 微信内: 显示引导横幅；Android 依赖系统 beforeinstallprompt
-    if (isWeChat) {
-        banner.classList.remove('hidden');
+    if (isWeChat || isIOS) {
+        showQuietPwaEntry();
     }
 
-    btnInstall?.addEventListener('click', () => {
+    if (isWeChat && !shouldSuppressBanner) {
+        banner?.classList.remove('hidden');
+    }
+
+    const openInstallFlow = () => {
         if (deferredPrompt) {
             // Android: 触发系统安装弹窗
             deferredPrompt.prompt();
             deferredPrompt.userChoice.then(() => {
                 deferredPrompt = null;
-                banner.classList.add('hidden');
+                banner?.classList.add('hidden');
                 localStorage.setItem('pwa_installed', '1');
                 markPwaPromptHandled();
+                hideQuietPwaEntry();
             });
         } else if (isWeChat) {
             // 微信内: 引导用户用浏览器打开
             markPwaPromptHandled();
-            banner.classList.add('hidden');
+            banner?.classList.add('hidden');
             wechatGuide?.classList.remove('hidden');
+        } else if (isIOS) {
+            iosGuide?.classList.remove('hidden');
         }
-    });
+    };
+
+    btnInstall?.addEventListener('click', openInstallFlow);
+    btnAddToHome?.addEventListener('click', openInstallFlow);
 
     btnDismiss?.addEventListener('click', () => {
         markPwaPromptHandled();
