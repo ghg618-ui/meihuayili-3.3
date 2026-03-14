@@ -1,6 +1,6 @@
 /**
  * History List View
- * 左滑 → 删除按钮，右滑 → 打开按钮，轻触不做任何操作
+ * 点击 → 露出"打开"按钮，左滑 → 露出"删除"按钮
  */
 import { $, $$, escapeHtml } from '../utils/dom.js';
 
@@ -32,10 +32,7 @@ export function renderHistoryList(container, history, currentId, onSelect, onDel
     `;
     }).join('');
 
-    // --- Swipe interaction ---
-    // States: default | swiped-left (delete visible) | swiped-right (open visible)
     let openedItem = null;
-    let openedDir = null; // 'left' | 'right'
 
     const closeOpenedItem = () => {
         if (!openedItem) return;
@@ -45,13 +42,19 @@ export function renderHistoryList(container, history, currentId, onSelect, onDel
         const delBtn = openedItem.querySelector('.history-delete-btn');
         if (delBtn) { delBtn.dataset.confirming = 'false'; delBtn.textContent = '删除'; }
         openedItem = null;
-        openedDir = null;
+    };
+
+    const openRight = (el) => {
+        closeOpenedItem();
+        el.classList.add('swiped-right');
+        const s = el.querySelector('.history-item-surface');
+        if (s) s.style.transform = `translateX(${SWIPE_WIDTH}px)`;
+        openedItem = el;
     };
 
     container.querySelectorAll('.history-item').forEach(el => {
         let startX = null;
         let startY = 0;
-        let deltaX = 0;
         let dragging = false;
         const surface = el.querySelector('.history-item-surface');
 
@@ -59,86 +62,92 @@ export function renderHistoryList(container, history, currentId, onSelect, onDel
             if (surface) surface.style.transform = `translateX(${px}px)`;
         };
 
-        // Tap on the surface area → close any opened item, nothing else
+        // --- TAP: 点击露出"打开"，再点别处收回 ---
         el.addEventListener('click', (e) => {
             if (e.target.closest('.history-delete-btn') || e.target.closest('.history-open-btn')) return;
+            if (dragging) return;
+
+            // If this item is already opened (either direction), close it
+            if (openedItem === el) {
+                closeOpenedItem();
+                return;
+            }
+            // If another item is opened, close it first
             if (openedItem) closeOpenedItem();
+            // Show "打开" button
+            openRight(el);
         });
 
+        // --- SWIPE: only left-swipe for delete ---
         el.addEventListener('pointerdown', (e) => {
             if (e.pointerType === 'mouse' && e.button !== 0) return;
-            if (openedItem && openedItem !== el) closeOpenedItem();
             startX = e.clientX;
             startY = e.clientY;
-            deltaX = 0;
             dragging = false;
         });
 
         el.addEventListener('pointermove', (e) => {
             if (startX === null) return;
-            deltaX = e.clientX - startX;
-            const deltaY = e.clientY - startY;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
 
-            // Need clear horizontal intent (> 18px) before entering drag mode
-            if (!dragging && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 18) {
+            // Only enter drag mode on clear leftward horizontal gesture
+            if (!dragging && Math.abs(dx) > Math.abs(dy) && dx < -18) {
                 dragging = true;
             }
             if (!dragging) return;
             e.preventDefault();
 
-            const isSwipedLeft = el.classList.contains('swiped-left');
-            const isSwipedRight = el.classList.contains('swiped-right');
-
-            if (isSwipedLeft) {
-                // Currently showing delete, allow dragging back toward 0
-                setOffset(Math.max(-SWIPE_WIDTH, Math.min(0, -SWIPE_WIDTH + deltaX)));
-            } else if (isSwipedRight) {
-                // Currently showing open, allow dragging back toward 0
-                setOffset(Math.min(SWIPE_WIDTH, Math.max(0, SWIPE_WIDTH + deltaX)));
+            if (el.classList.contains('swiped-left')) {
+                setOffset(Math.max(-SWIPE_WIDTH, Math.min(0, -SWIPE_WIDTH + dx)));
             } else {
-                // Neutral state: clamp between -SWIPE_WIDTH and +SWIPE_WIDTH
-                setOffset(Math.max(-SWIPE_WIDTH, Math.min(SWIPE_WIDTH, deltaX)));
+                // Close any right-revealed state first, then track left drag
+                if (el.classList.contains('swiped-right')) {
+                    el.classList.remove('swiped-right');
+                    openedItem = null;
+                }
+                setOffset(Math.max(-SWIPE_WIDTH, Math.min(0, dx)));
             }
         });
 
         const finishSwipe = () => {
             if (startX === null) return;
-            if (!dragging) { startX = null; deltaX = 0; return; }
+            const dx = startX !== null ? 0 : 0; // we read dragging flag instead
+
+            if (!dragging) { startX = null; return; }
 
             const isSwipedLeft = el.classList.contains('swiped-left');
-            const isSwipedRight = el.classList.contains('swiped-right');
-            const threshold = 32;
 
-            if (!isSwipedLeft && !isSwipedRight) {
-                // From neutral
-                if (deltaX < -threshold) {
-                    // Left swipe → show delete
+            if (isSwipedLeft) {
+                // Was showing delete; check if dragged right enough to close
+                const currentX = surface ? parseFloat(surface.style.transform.replace(/[^-\d.]/g, '')) || 0 : 0;
+                if (currentX > -SWIPE_WIDTH / 2) {
+                    closeOpenedItem();
+                } else {
+                    setOffset(-SWIPE_WIDTH);
+                }
+            } else {
+                // From neutral/right state: check if surface moved left enough
+                const currentX = surface ? parseFloat(surface.style.transform.replace(/[^-\d.]/g, '')) || 0 : 0;
+                if (currentX < -SWIPE_WIDTH / 2) {
+                    closeOpenedItem();
                     el.classList.add('swiped-left');
                     setOffset(-SWIPE_WIDTH);
-                    openedItem = el; openedDir = 'left';
-                } else if (deltaX > threshold) {
-                    // Right swipe → show open
-                    el.classList.add('swiped-right');
-                    setOffset(SWIPE_WIDTH);
-                    openedItem = el; openedDir = 'right';
+                    openedItem = el;
                 } else {
                     setOffset(0);
                 }
-            } else if (isSwipedLeft) {
-                if (deltaX > 22) { closeOpenedItem(); } else { setOffset(-SWIPE_WIDTH); }
-            } else if (isSwipedRight) {
-                if (deltaX < -22) { closeOpenedItem(); } else { setOffset(SWIPE_WIDTH); }
             }
 
-            startX = null; deltaX = 0; dragging = false;
+            startX = null; dragging = false;
         };
 
         el.addEventListener('pointerup', finishSwipe);
         el.addEventListener('pointercancel', () => {
-            const isLeft = el.classList.contains('swiped-left');
-            const isRight = el.classList.contains('swiped-right');
-            setOffset(isLeft ? -SWIPE_WIDTH : isRight ? SWIPE_WIDTH : 0);
-            startX = null; deltaX = 0; dragging = false;
+            if (el.classList.contains('swiped-left')) setOffset(-SWIPE_WIDTH);
+            else if (el.classList.contains('swiped-right')) setOffset(SWIPE_WIDTH);
+            else setOffset(0);
+            startX = null; dragging = false;
         });
 
         // --- Open button ---
