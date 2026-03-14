@@ -26,9 +26,20 @@ export function closeModal(id) {
     }
 }
 
-// iOS 键盘修复：focus 时强制 scrollIntoView
+// iOS 键盘修复：focus 时强制 scrollIntoView + 阻止密码管理器
 export function initIOSKeyboardFix() {
     if (!isIOS) return;
+
+    // 给 modal 中的 input 加 readonly，阻止密码管理器自动弹出
+    // 聚焦时延迟移除 readonly，让用户正常输入
+    document.addEventListener('touchstart', (e) => {
+        const el = e.target;
+        if ((el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && el.closest('.modal-overlay')) {
+            el.removeAttribute('readonly');
+            setTimeout(() => el.focus(), 50);
+        }
+    }, true);
+
     document.addEventListener('focusin', (e) => {
         const el = e.target;
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {

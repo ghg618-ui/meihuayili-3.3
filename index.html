@@ -604,19 +604,19 @@
                 <div id="auth-form-main">
                     <div class="control-group">
                         <label for="auth-username">用户名</label>
-                        <input type="text" id="auth-username" placeholder="请输入用户名" autocomplete="username">
+                        <input type="text" id="auth-username" placeholder="请输入用户名" autocomplete="off" readonly>
                     </div>
                     <div class="control-group">
                         <label for="auth-password">密码</label>
-                        <input type="password" id="auth-password" placeholder="请输入密码" autocomplete="current-password">
+                        <input type="password" id="auth-password" placeholder="请输入密码" autocomplete="off" readonly>
                     </div>
                     <div class="control-group hidden" id="confirm-password-group">
                         <label for="auth-confirm-password">确认密码</label>
-                        <input type="password" id="auth-confirm-password" placeholder="请再次输入密码" autocomplete="new-password">
+                        <input type="password" id="auth-confirm-password" placeholder="请再次输入密码" autocomplete="off" readonly>
                     </div>
                     <div class="control-group hidden" id="email-group">
                         <label for="auth-email">邮箱 <span style="font-size:0.75rem; color:var(--text-tertiary)">（用于找回密码）</span></label>
-                        <input type="email" id="auth-email" placeholder="选填，建议绑定" autocomplete="email">
+                        <input type="email" id="auth-email" placeholder="选填，建议绑定" autocomplete="off">
                     </div>
                     <button class="btn-primary" style="width: 100%;" id="btn-auth-submit">登录</button>
                     <p id="forgot-password-link" style="text-align: center; margin-top: 10px; font-size: 0.78rem; color: var(--accent-plum); cursor: pointer;">
