@@ -146,7 +146,7 @@ body.drawer-lock {
 body {
   margin: 0;
   padding: 0;
-  background: linear-gradient(180deg, #f6efdf 0%, #efe6d6 100%);
+  background: #f3eadb;
   color: var(--text-primary);
   font-family: var(--font-sans);
   line-height: 1.6;
@@ -312,11 +312,11 @@ body {
 .question-hero {
   padding: 42px 48px 48px;
   text-align: center;
-  background: linear-gradient(180deg, #fffdf9 0%, #f4eadb 100%);
+  background: transparent;
   border-radius: var(--radius-xl);
   margin-bottom: 32px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 12px 30px rgba(181, 122, 52, 0.07);
+  border: none;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
@@ -561,10 +561,10 @@ body {
 /* --- Hexagram Card Reconstruction --- */
 #hexagram-display {
   padding: 20px 24px;
-  background: var(--bg-primary);
+  background: transparent;
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  border: none;
+  box-shadow: none;
   margin-top: 0;
 }
 
@@ -596,7 +596,7 @@ body {
   align-items: center;
   gap: 8px;
   padding: 4px 12px;
-  background: var(--bg-secondary);
+  background: rgba(255, 253, 250, 0.7);
   border-radius: 20px;
   border: 1px solid var(--border-color);
 }
@@ -624,7 +624,7 @@ body {
 
 .hex-card {
   flex: 1;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 16px 12px;
@@ -634,12 +634,12 @@ body {
   max-width: 400px;
   position: relative;
   transition: var(--transition-smooth);
-  box-shadow: var(--shadow-sm);
+  box-shadow: none;
 }
 
 .hex-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: none;
+  box-shadow: none;
   border-color: var(--border-hover);
 }
 
@@ -1144,12 +1144,12 @@ body {
 
 /* --- Chat Message Styles --- */
 .chat-message.assistant {
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   padding: 20px 24px;
   margin-left: -24px;
   margin-right: -24px;
   border-radius: 0;
-  border-left: 3px solid var(--accent-plum);
+  border-left: 2px solid rgba(217, 152, 72, 0.55);
   line-height: 1.7;
   box-shadow: none;
 }
@@ -1172,7 +1172,7 @@ body {
 .dual-col {
   flex: 1;
   min-width: 0;
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1182,7 +1182,7 @@ body {
 }
 
 .dual-col:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: none;
 }
 
 .dual-col-header {
@@ -2539,13 +2539,13 @@ input[type=number] {
 }
 
 .history-item:hover {
-  background: #f8f1e7;
+  background: rgba(255, 253, 250, 0.72);
   padding-left: 24px !important;
 }
 
 .history-item.active {
-  background: #f2e7d8;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.02);
+  background: rgba(255, 248, 238, 0.92);
+  box-shadow: none;
 }
 
 .history-item-name {
