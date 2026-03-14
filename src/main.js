@@ -59,7 +59,7 @@ const DIVINATION_TOPIC_RE = /(工作|事业|财运|感情|婚姻|学业|考试|�
 let _pendingParsedResult = null;
 let _pendingDateInfo = null;
 
-function isMeaningfulDivinationQuestion(rawQuestion) {
+function isMeaningfulDivinationQuestion(rawQuestion, hasParsedHex = false) {
     const question = (rawQuestion || '').trim();
     if (!question) return false;
     const normalized = question
@@ -67,9 +67,15 @@ function isMeaningfulDivinationQuestion(rawQuestion) {
         .toLowerCase();
 
     if (NON_QUESTION_PATTERNS.some((pattern) => pattern.test(normalized))) return false;
-    if (DIVINATION_TOPIC_RE.test(question)) return true;
-    if (question.length >= 12 && QUESTION_HINT_RE.test(question)) return true;
-    if (question.length >= 16) return true;
+    if (hasParsedHex) return true;
+
+    const hasTopic = DIVINATION_TOPIC_RE.test(question);
+    const hasQuestionHint = QUESTION_HINT_RE.test(question);
+
+    if (hasTopic && hasQuestionHint) return true;
+    if (hasTopic && normalized.length >= 6) return true;
+    if (hasQuestionHint && normalized.length >= 12) return true;
+    if (normalized.length >= 18) return true;
     return false;
 }
 
@@ -487,18 +493,25 @@ function handleTextInputChange() {
         return;
     }
     const parsed = DivinationEngine.parseFromText(text);
+    const meaningful = isMeaningfulDivinationQuestion(text, Boolean(parsed));
     if (parsed) {
         btnQuick?.classList.remove('hidden');
         btnTime?.classList.add('hidden');
         btnTime?.classList.remove('breathing');
         ritual?.classList.add('hidden');
         if (hintText) hintText.style.display = 'none';
-    } else {
+    } else if (meaningful) {
         btnQuick?.classList.add('hidden');
         btnTime?.classList.remove('hidden');
         // 显示净心引导 + 按钮呼吸光晕
         ritual?.classList.remove('hidden');
         btnTime?.classList.add('breathing');
+        if (hintText) hintText.style.display = 'none';
+    } else {
+        btnQuick?.classList.add('hidden');
+        btnTime?.classList.add('hidden');
+        btnTime?.classList.remove('breathing');
+        ritual?.classList.add('hidden');
         if (hintText) hintText.style.display = 'block';
     }
 }
@@ -782,7 +795,7 @@ async function handleDivineMain() {
         showToast('请先进行起卦操作', 'error');
         return;
     }
-    if (!isMeaningfulDivinationQuestion(question)) {
+    if (!isMeaningfulDivinationQuestion(question, Boolean(DivinationEngine.parseFromText(question)))) {
         showToast('先写下具体疑问，再来断卦。比如：我今年适合换工作吗？', 'info');
         $('#input-chat')?.focus();
         return;
@@ -799,7 +812,7 @@ async function handleChatFollowUp() {
     const input = $('#chat-user-input');
     const question = input.value.trim().slice(0, MAX_QUESTION_LEN);
     if (!question) return;
-    if (!isMeaningfulDivinationQuestion(question)) {
+    if (!isMeaningfulDivinationQuestion(question, Boolean(DivinationEngine.parseFromText(question)))) {
         showToast('请直接补充你的疑问，不要只发寒暄语。', 'info');
         input.focus();
         return;
