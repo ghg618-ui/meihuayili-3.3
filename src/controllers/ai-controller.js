@@ -235,16 +235,14 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
 
         // Simulated progress: fast at start, slows down approaching 90%, never reaches 100% until content arrives
         function startThinkingProgress() {
+            const bar = targetEl.querySelector('.thinking-progress-fill');
+            const pct = targetEl.querySelector('.thinking-pct');
+            const dotsEl = targetEl.querySelector('.thinking-dots');
             thinkingTimer = setInterval(() => {
-                const elapsed = (Date.now() - thinkingStartTime) / 1000; // seconds
-                // Logarithmic curve: quick to 60%, slow to 90%, crawls after
+                const elapsed = (Date.now() - thinkingStartTime) / 1000;
                 thinkingProgress = Math.min(92, 30 * Math.log10(elapsed + 1) + elapsed * 0.8);
-                const bar = targetEl.querySelector('.thinking-progress-fill');
-                const pct = targetEl.querySelector('.thinking-pct');
                 if (bar) bar.style.width = thinkingProgress.toFixed(1) + '%';
                 if (pct) pct.textContent = Math.floor(thinkingProgress) + '%';
-                // Update dots
-                const dotsEl = targetEl.querySelector('.thinking-dots');
                 if (dotsEl) {
                     const dotFrames = ['', '.', '..', '...'];
                     dotsEl.textContent = dotFrames[Math.floor(Date.now() / 500) % 4];
@@ -254,6 +252,7 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
 
         function stopThinkingProgress() {
             if (thinkingTimer) { clearInterval(thinkingTimer); thinkingTimer = null; }
+            if (stalledHintTimer) { clearTimeout(stalledHintTimer); stalledHintTimer = null; }
             state.stopCurrentThinkingProgress = null;
         }
 
@@ -348,7 +347,7 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
             const totalReasoning = prefixReasoning + reasoning;
             const hasOutput = Boolean((totalContent && totalContent.trim()) || (totalReasoning && totalReasoning.trim()));
 
-            $('#chat-status').textContent = '就绪';
+            $('#chat-status').textContent = '';
             $('#btn-stop-generate')?.classList.add('hidden');
             if (hasOutput) {
                 state.interruptedCtx = null; // Clear — analysis complete

@@ -113,10 +113,8 @@ export function initAuthPasswordAssist() {
 
     const syncFromReal = () => syncAuthPasswordInputs('real');
     real.addEventListener('input', syncFromReal);
-    real.addEventListener('change', syncFromReal);
 
     manual.addEventListener('input', () => syncAuthPasswordInputs('manual'));
-    manual.addEventListener('change', () => syncAuthPasswordInputs('manual'));
 
     const maybeSwitchToManualEditor = (e) => {
         if ($('#tab-register')?.classList.contains('active')) return;
@@ -319,7 +317,6 @@ export function handleLogout(renderHistory, startNewCase) {
     updateUIForAuth();
     renderHistory();
     startNewCase();
-    showToast('已退出', 'info');
 }
 
 export function handleRedeemVip() {

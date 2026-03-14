@@ -414,8 +414,8 @@ body {
   font-size: 0.95rem;
   font-family: var(--font-sans);
   font-weight: 500;
-  color: var(--accent-plum);
-  background: transparent;
+  color: #fff;
+  background: var(--accent-plum);
   border: 1.5px solid var(--accent-plum);
   border-radius: 100px;
   cursor: pointer;
@@ -428,35 +428,39 @@ body {
 }
 
 .btn-time-divine:hover {
-  background: var(--accent-plum);
-  color: white;
+  background: var(--accent-plum-dark);
+  border-color: var(--accent-plum-dark);
+  color: #fff;
 }
 
 .btn-time-divine:focus,
 .btn-time-divine:focus-visible,
 .btn-time-divine:active {
-  background: transparent;
-  color: var(--accent-plum);
+  background: var(--accent-plum);
+  color: #fff;
   border-color: var(--accent-plum);
   box-shadow: none;
   outline: none;
 }
 @media (hover: hover) and (pointer: fine) {
   .btn-time-divine:hover {
-    background: var(--accent-plum);
-    color: white;
+    background: var(--accent-plum-dark);
+    border-color: var(--accent-plum-dark);
+    color: #fff;
   }
 }
 
 [data-theme="dark"] .btn-time-divine {
-  color: var(--accent-plum-light);
+  color: #1A111A;
+  background: var(--accent-plum-light);
   border-color: var(--accent-plum-light);
 }
 
 @media (hover: hover) and (pointer: fine) {
   [data-theme="dark"] .btn-time-divine:hover {
-    background: var(--accent-plum-light);
-    color: #1A111A;
+    background: var(--accent-plum);
+    border-color: var(--accent-plum);
+    color: #fff;
   }
 }
 
@@ -2717,8 +2721,8 @@ input[type=number] {
   .btn-time-divine:active,
   .btn-time-divine:focus,
   .btn-time-divine:focus-visible {
-    background: transparent;
-    color: var(--accent-plum);
+    background: var(--accent-plum);
+    color: #fff;
     border-color: var(--accent-plum);
     box-shadow: none;
   }
@@ -2727,8 +2731,8 @@ input[type=number] {
   [data-theme="dark"] .btn-time-divine:active,
   [data-theme="dark"] .btn-time-divine:focus,
   [data-theme="dark"] .btn-time-divine:focus-visible {
-    background: transparent;
-    color: var(--accent-plum-light);
+    background: var(--accent-plum-light);
+    color: #1A111A;
     border-color: var(--accent-plum-light);
   }
 }

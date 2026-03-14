@@ -31,7 +31,11 @@ export function closeModal(id) {
     }
 }
 
+let _modalsInitialized = false;
 export function initModals() {
+    if (_modalsInitialized) return;
+    _modalsInitialized = true;
+
     // Global close button listener
     document.addEventListener('click', (e) => {
         if (e.target.matches('.modal-bg') || e.target.matches('.btn-close-modal')) {

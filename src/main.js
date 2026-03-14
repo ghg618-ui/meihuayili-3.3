@@ -339,8 +339,21 @@ function bindEvents() {
 
     // Close mobile drawer when overlay is tapped
     $('#sidebar-overlay')?.addEventListener('click', closeMobileDrawer);
-    window.addEventListener('scroll', updateMobileNewCaseButtonVisibility, { passive: true });
-    window.addEventListener('resize', updateMobileNewCaseButtonVisibility);
+    // scroll 节流：最多每 100ms 执行一次
+    let _lastScrollTime = 0;
+    window.addEventListener('scroll', () => {
+        const now = Date.now();
+        if (now - _lastScrollTime > 100) {
+            updateMobileNewCaseButtonVisibility();
+            _lastScrollTime = now;
+        }
+    }, { passive: true });
+    // resize 防抖：停止变化后 100ms 再执行
+    let _resizeTimer = null;
+    window.addEventListener('resize', () => {
+        clearTimeout(_resizeTimer);
+        _resizeTimer = setTimeout(updateMobileNewCaseButtonVisibility, 100);
+    });
 
     // New Case
     $('#btn-new-case')?.addEventListener('click', startNewCase);
@@ -719,11 +732,7 @@ function loadHistoryRecord(id) {
         $('#btn-time-divine')?.classList.add('hidden');
         $('#btn-quick-parse')?.classList.add('hidden');
 
-        $('#chat-messages')?.insertAdjacentHTML('afterbegin', `
-            <div class="history-replay-badge">
-                <span>历史记录</span>
-            </div>
-        `);
+        $('#chat-status').textContent = '历史记录';
 
         renderResult(state.currentResult, false);
 
