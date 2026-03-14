@@ -240,6 +240,28 @@ function clearSessionCookie(res) {
     });
 }
 
+function requireSessionUser(req, res, rawName) {
+    const name = normalizeName(rawName);
+    if (!name || !safeFileName(name)) {
+        res.status(400).json({ error: '用户名无效' });
+        return null;
+    }
+
+    const sessionUser = getSessionUser(req);
+    if (!sessionUser?.name) {
+        clearSessionCookie(res);
+        res.status(401).json({ error: '请先登录' });
+        return null;
+    }
+
+    if (sessionUser.name !== name) {
+        res.status(403).json({ error: '无权限访问该历史记录' });
+        return null;
+    }
+
+    return name;
+}
+
 // 用户名只能包含字母、数字、下划线、中文，防止路径遍历
 const SAFE_NAME_RE = /^[\w\u4e00-\u9fa5]{1,20}$/;
 function safeFileName(name) {
@@ -466,8 +488,9 @@ app.post('/api/reset-password', (req, res) => {
 // ===== 历史记录保存 =====
 app.post('/api/history/save', (req, res) => {
     const { username, records } = req.body;
-    if (!username || !safeFileName(username)) return res.status(400).json({ error: '用户名无效' });
-    const filePath = join(HISTORY_DIR, `${safeFileName(username)}.json`);
+    const name = requireSessionUser(req, res, username);
+    if (!name) return;
+    const filePath = join(HISTORY_DIR, `${safeFileName(name)}.json`);
     writeFileSync(filePath, JSON.stringify(records || [], null, 2));
     res.json({ success: true });
 });
@@ -475,8 +498,9 @@ app.post('/api/history/save', (req, res) => {
 // ===== 历史记录读取 =====
 app.get('/api/history/load', (req, res) => {
     const { username } = req.query;
-    if (!username || !safeFileName(username)) return res.status(400).json({ error: '用户名无效' });
-    const filePath = join(HISTORY_DIR, `${safeFileName(username)}.json`);
+    const name = requireSessionUser(req, res, username);
+    if (!name) return;
+    const filePath = join(HISTORY_DIR, `${safeFileName(name)}.json`);
     try {
         const records = JSON.parse(readFileSync(filePath, 'utf8'));
         res.json({ success: true, records });

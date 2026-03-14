@@ -100,7 +100,7 @@ function closeMobileDrawer() {
 }
 
 // ===================== Initialization =====================
-function init() {
+async function init() {
     log.info('Initializing...');
     initModals();
     initAuthPasswordAssist();
@@ -110,6 +110,8 @@ function init() {
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
+
+    state.currentUser = await hydrateRememberedUser();
 
     state.history = loadHistory(state.currentUser?.name);
     state.selectedModelKey = getSelectedModel();
@@ -131,18 +133,6 @@ function init() {
         mergeCloudHistory(state.currentUser.name).then((history) => {
             state.history = history;
             renderHistory();
-        });
-    } else {
-        hydrateRememberedUser().then((user) => {
-            if (!user?.name || state.currentUser?.name) return;
-            state.currentUser = user;
-            updateUIForAuth();
-            state.history = loadHistory(user.name);
-            renderHistory();
-            mergeCloudHistory(user.name).then((history) => {
-                state.history = history;
-                renderHistory();
-            });
         });
     }
 

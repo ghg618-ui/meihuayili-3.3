@@ -65,6 +65,7 @@ export function deleteHistoryRecord(userName, recordId) {
 function syncHistoryToCloud(userName, records) {
     fetch(`${API_BASE}/api/history/save`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: userName, records }),
     }).catch(e => log.warn('云端同步失败', e));
@@ -73,7 +74,9 @@ function syncHistoryToCloud(userName, records) {
 /** 登录后从服务器拉取历史，与本地合并（去重） */
 export async function mergeCloudHistory(userName) {
     try {
-        const resp = await fetch(`${API_BASE}/api/history/load?username=${encodeURIComponent(userName)}`);
+        const resp = await fetch(`${API_BASE}/api/history/load?username=${encodeURIComponent(userName)}`, {
+            credentials: 'include',
+        });
         const data = await resp.json();
         if (!data.success || !data.records?.length) return loadHistory(userName);
 

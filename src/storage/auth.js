@@ -9,79 +9,6 @@ const log = makeLogger('Auth');
 
 const API_BASE = 'https://api.meihuayili.com';
 const CURRENT_USER_KEY = 'meihua_current_user';
-const CURRENT_USER_COOKIE = 'meihua_current_user';
-const CURRENT_USER_COOKIE_MAX_AGE = 60 * 60 * 24 * 180;
-const AUTH_DB_NAME = 'meihua_auth_state';
-const AUTH_DB_STORE = 'kv';
-const AUTH_DB_CURRENT_USER_KEY = 'current_user';
-
-function openAuthDb() {
-    if (typeof indexedDB === 'undefined') return Promise.resolve(null);
-
-    return new Promise((resolve) => {
-        const request = indexedDB.open(AUTH_DB_NAME, 1);
-        request.onupgradeneeded = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains(AUTH_DB_STORE)) {
-                db.createObjectStore(AUTH_DB_STORE);
-            }
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => {
-            log.warn('Failed to open auth IndexedDB', request.error);
-            resolve(null);
-        };
-    });
-}
-
-async function persistCurrentUserToIndexedDb(currentUser) {
-    const db = await openAuthDb();
-    if (!db) return;
-
-    await new Promise((resolve) => {
-        const tx = db.transaction(AUTH_DB_STORE, 'readwrite');
-        tx.objectStore(AUTH_DB_STORE).put(currentUser, AUTH_DB_CURRENT_USER_KEY);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => {
-            log.warn('Failed to persist current user to IndexedDB', tx.error);
-            resolve();
-        };
-    });
-
-    db.close();
-}
-
-async function readCurrentUserFromIndexedDb() {
-    const db = await openAuthDb();
-    if (!db) return null;
-
-    const currentUser = await new Promise((resolve) => {
-        const tx = db.transaction(AUTH_DB_STORE, 'readonly');
-        const request = tx.objectStore(AUTH_DB_STORE).get(AUTH_DB_CURRENT_USER_KEY);
-        request.onsuccess = () => resolve(request.result || null);
-        request.onerror = () => {
-            log.warn('Failed to read current user from IndexedDB', request.error);
-            resolve(null);
-        };
-    });
-
-    db.close();
-    return currentUser;
-}
-
-async function clearCurrentUserFromIndexedDb() {
-    const db = await openAuthDb();
-    if (!db) return;
-
-    await new Promise((resolve) => {
-        const tx = db.transaction(AUTH_DB_STORE, 'readwrite');
-        tx.objectStore(AUTH_DB_STORE).delete(AUTH_DB_CURRENT_USER_KEY);
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => resolve();
-    });
-
-    db.close();
-}
 
 function cacheCurrentUserLocally(currentUser) {
     const users = getRegisteredUsers();
@@ -96,26 +23,11 @@ function cacheCurrentUserLocally(currentUser) {
 }
 
 function persistCurrentUser(currentUser) {
-    const serialized = JSON.stringify(currentUser);
-    localStorage.setItem(CURRENT_USER_KEY, serialized);
-    document.cookie = `${CURRENT_USER_COOKIE}=${encodeURIComponent(serialized)}; path=/; max-age=${CURRENT_USER_COOKIE_MAX_AGE}; SameSite=Lax`;
-    persistCurrentUserToIndexedDb(currentUser);
-}
-
-function readCurrentUserFromCookie() {
-    const match = document.cookie.match(new RegExp(`(?:^|; )${CURRENT_USER_COOKIE}=([^;]*)`));
-    if (!match) return null;
-    try {
-        return JSON.parse(decodeURIComponent(match[1]));
-    } catch {
-        return null;
-    }
+    localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
 }
 
 function clearCurrentUserPersistence() {
     localStorage.removeItem(CURRENT_USER_KEY);
-    document.cookie = `${CURRENT_USER_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
-    clearCurrentUserFromIndexedDb();
 }
 
 export function getRegisteredUsers() {
@@ -276,40 +188,32 @@ export function getCurrentUser() {
         log.warn('Failed to parse current user from localStorage', e);
     }
 
-    const cookieUser = readCurrentUserFromCookie();
-    if (cookieUser?.name) {
-        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(cookieUser));
-        return cookieUser;
-    }
-
     return null;
 }
 
 export async function hydrateRememberedUser() {
-    const syncUser = getCurrentUser();
-    if (syncUser?.name) return syncUser;
-
-    const indexedUser = await readCurrentUserFromIndexedDb();
-    if (indexedUser?.name) {
-        persistCurrentUser(indexedUser);
-        return indexedUser;
-    }
+    const localUser = getCurrentUser();
 
     try {
         const resp = await fetch(`${API_BASE}/api/session/current`, {
             credentials: 'include',
         });
-        const data = await resp.json();
+        const data = await resp.json().catch(() => null);
         if (resp.ok && data.success && data.user?.name) {
             const currentUser = { name: data.user.name, hasEmail: !!data.user.hasEmail };
             cacheCurrentUserLocally(currentUser);
             return currentUser;
         }
+
+        if (resp.status === 401) {
+            clearCurrentUserPersistence();
+            return null;
+        }
     } catch (e) {
         log.warn('服务器会话恢复失败', e);
     }
 
-    return null;
+    return localUser?.name ? localUser : null;
 }
 
 export function logoutUser() {
