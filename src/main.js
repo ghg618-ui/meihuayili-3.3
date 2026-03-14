@@ -46,10 +46,26 @@ import { performAIAnalysis, continueAIAnalysis, performComparisonAnalysis } from
 import makeLogger from './utils/logger.js';
 
 const log = makeLogger('App');
+const NON_QUESTION_PATTERNS = [
+    /^(你好|您好|嗨|哈喽|hello|hi)$/i,
+    /^(在吗|有人吗|在不在)$/,
+    /^(测试|试试|test)$/i,
+    /^(谢谢|谢了|好的|好)$/,
+];
+const QUESTION_HINT_RE = /(是否|能否|能不能|可不可以|会不会|行不行|该不该|要不要|如何|怎么办|怎么做|怎么选|何时|什么时候|几时|结果|前景|发展|适不适合|值不值得|有没有机会|问|请问|求问|吗|？|\?)/;
 
 // Pending date clarification state
 let _pendingParsedResult = null;
 let _pendingDateInfo = null;
+
+function isMeaningfulDivinationQuestion(rawQuestion) {
+    const question = (rawQuestion || '').trim();
+    if (!question) return false;
+    if (NON_QUESTION_PATTERNS.some((pattern) => pattern.test(question))) return false;
+    if (question.length >= 8) return true;
+    if (QUESTION_HINT_RE.test(question)) return true;
+    return false;
+}
 
 // ===================== Icon Utilities =====================
 function refreshIcons() {
@@ -754,10 +770,15 @@ function handleCastByManual() {
 const MAX_QUESTION_LEN = 500;
 
 async function handleDivineMain() {
-    let question = $('#input-chat').value.trim() || '此卦何解？';
+    let question = $('#input-chat').value.trim();
     if (question.length > MAX_QUESTION_LEN) question = question.slice(0, MAX_QUESTION_LEN);
     if (!state.currentResult) {
         showToast('请先进行起卦操作', 'error');
+        return;
+    }
+    if (!isMeaningfulDivinationQuestion(question)) {
+        showToast('请先输入一个具体问题，再来断卦。比如：我今年适合换工作吗？', 'error');
+        $('#input-chat')?.focus();
         return;
     }
     $('#ai-chat').classList.remove('hidden');
@@ -772,6 +793,11 @@ async function handleChatFollowUp() {
     const input = $('#chat-user-input');
     const question = input.value.trim().slice(0, MAX_QUESTION_LEN);
     if (!question) return;
+    if (!isMeaningfulDivinationQuestion(question)) {
+        showToast('请直接补充你的疑问，不要只发寒暄语。', 'error');
+        input.focus();
+        return;
+    }
 
     input.value = '';
     addMessage($('#chat-messages'), { role: 'user', content: question });

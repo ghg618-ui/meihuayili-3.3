@@ -203,7 +203,7 @@ async function _runStream({ config, modelInfo, messages, targetEl, question, ren
     if (state.currentAbortController) state.currentAbortController.abort();
     state.currentAbortController = new AbortController();
 
-    $('#chat-status').textContent = `${modelInfo.label} 思考中...`;
+    $('#chat-status').textContent = '思考中...';
     $('#btn-stop-generate')?.classList.remove('hidden');
     $('#btn-continue-generate')?.classList.add('hidden');
 
