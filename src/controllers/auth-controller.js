@@ -15,8 +15,32 @@ const isIOSWeChat = (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
 function getAuthPasswordElements() {
     return {
         real: $('#auth-password'),
-        manual: $('#auth-password-manual')
+        manual: $('#auth-password-manual'),
+        help: $('#auth-password-help'),
+        helpText: $('#auth-password-help-text'),
+        switcher: $('#auth-password-switcher')
     };
+}
+
+function updateAuthPasswordHelp(mode = 'real') {
+    const { help, helpText, switcher } = getAuthPasswordElements();
+    if (!help || !helpText || !switcher) return;
+
+    if (!isIOSWeChat || $('#tab-register')?.classList.contains('active')) {
+        help.classList.add('hidden');
+        return;
+    }
+
+    help.classList.remove('hidden');
+
+    if (mode === 'manual') {
+        helpText.textContent = '现在是手动修改模式，你可以直接改密码';
+        switcher.textContent = '改回自动填充';
+        return;
+    }
+
+    helpText.textContent = '如果系统自动填入的密码不对，点右边手动修改';
+    switcher.textContent = '手动修改';
 }
 
 function syncAuthPasswordInputs(source = 'real') {
@@ -45,6 +69,7 @@ function showRealAuthPasswordInput() {
     real.removeAttribute('aria-hidden');
     manual.classList.add('hidden');
     manual.setAttribute('aria-hidden', 'true');
+    updateAuthPasswordHelp('real');
 }
 
 function showManualAuthPasswordInput(shouldFocus = false) {
@@ -58,6 +83,7 @@ function showManualAuthPasswordInput(shouldFocus = false) {
     real.setAttribute('aria-hidden', 'true');
     manual.classList.remove('hidden');
     manual.removeAttribute('aria-hidden');
+    updateAuthPasswordHelp('manual');
 
     if (shouldFocus) {
         setTimeout(() => {
@@ -80,8 +106,8 @@ function getAuthPasswordValue() {
 export function initAuthPasswordAssist() {
     if (!isIOSWeChat) return;
 
-    const { real, manual } = getAuthPasswordElements();
-    if (!real || !manual) return;
+    const { real, manual, switcher } = getAuthPasswordElements();
+    if (!real || !manual || !switcher) return;
 
     showRealAuthPasswordInput();
 
@@ -102,6 +128,16 @@ export function initAuthPasswordAssist() {
 
     real.addEventListener('click', maybeSwitchToManualEditor);
     real.addEventListener('touchend', maybeSwitchToManualEditor);
+
+    switcher.addEventListener('click', () => {
+        if (manual.classList.contains('hidden')) {
+            showManualAuthPasswordInput(true);
+            return;
+        }
+
+        showRealAuthPasswordInput();
+        real.focus();
+    });
 }
 
 export function switchToLoginMode() {
@@ -128,6 +164,7 @@ export function switchToRegisterMode() {
     $('#auth-password-manual')?.setAttribute('autocomplete', 'off');
     $('#auth-confirm-password')?.setAttribute('autocomplete', 'new-password');
     showRealAuthPasswordInput();
+    updateAuthPasswordHelp('hidden');
     $('#btn-auth-submit').textContent = '注册并进入';
     $('#auth-form-main')?.classList.remove('hidden');
     $('#auth-form-reset')?.classList.add('hidden');

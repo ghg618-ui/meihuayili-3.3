@@ -657,6 +657,10 @@
                         <label for="auth-password">密码</label>
                         <input type="password" id="auth-password" placeholder="请输入密码" autocomplete="current-password">
                         <input type="text" id="auth-password-manual" class="masked-input hidden" placeholder="请手动修改密码" autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="text" aria-hidden="true">
+                        <div id="auth-password-help" class="auth-password-help hidden" aria-live="polite">
+                            <span id="auth-password-help-text" class="auth-password-help-text">如果系统自动填入的密码不对，点右边手动修改</span>
+                            <button type="button" id="auth-password-switcher" class="auth-password-switcher">手动修改</button>
+                        </div>
                     </div>
                     <div class="control-group hidden" id="confirm-password-group">
                         <label for="auth-confirm-password">确认密码</label>
