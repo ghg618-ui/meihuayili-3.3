@@ -40,7 +40,7 @@ import {
     handleAdminResetPassword,
     handleChangePassword
 } from './controllers/auth-controller.js';
-import { hasProAccess, hydrateRememberedUser } from './storage/auth.js';
+import { hasProAccess, hydrateRememberedUser, getCurrentUser } from './storage/auth.js';
 import { handleSaveSettings, loadSettingsToModal } from './controllers/settings-controller.js';
 import { performAIAnalysis, continueAIAnalysis, performComparisonAnalysis } from './controllers/ai-controller.js';
 import makeLogger from './utils/logger.js';
@@ -179,7 +179,8 @@ async function init() {
         lucide.createIcons();
     }
 
-    state.currentUser = await hydrateRememberedUser();
+    // 先用本地缓存立即恢复用户（瞬间完成，不等网络）
+    state.currentUser = getCurrentUser();
 
     state.history = loadHistory(state.currentUser?.name);
     state.selectedModelKey = getSelectedModel();
@@ -196,6 +197,19 @@ async function init() {
     bindEvents();
     updateUIForAuth();  // 这里会设置模型选择器的显示/隐藏
     renderHistory();
+
+    // 后台静默验证 session，如果失效则清除登录态
+    hydrateRememberedUser().then(serverUser => {
+        const wasLoggedIn = !!state.currentUser;
+        const isLoggedIn = !!serverUser;
+        state.currentUser = serverUser;
+        // 只有登录状态变化时才刷新UI
+        if (wasLoggedIn !== isLoggedIn) {
+            updateUIForAuth();
+            state.history = loadHistory(state.currentUser?.name);
+            renderHistory();
+        }
+    });
 
     if (state.currentUser?.name) {
         mergeCloudHistory(state.currentUser.name).then((history) => {
