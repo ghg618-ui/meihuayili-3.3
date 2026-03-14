@@ -862,6 +862,14 @@ document.addEventListener('DOMContentLoaded', init);
     const isWeChat = /MicroMessenger/i.test(ua);
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
 
+    // iPhone/iPad 浏览器里无法可靠判断“是否已添加到主屏幕”，继续展示只会反复误报。
+    // 因此这里直接关闭浏览器端横幅，仅保留 Android 原生安装提示和微信内引导。
+    if (isIOS && !isWeChat) {
+        markPwaPromptHandled();
+        hidePwaPrompts();
+        return;
+    }
+
     // Android Chrome: 捕获系统安装事件
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
@@ -869,8 +877,8 @@ document.addEventListener('DOMContentLoaded', init);
         banner.classList.remove('hidden');
     });
 
-    // iOS Safari 或微信内: 直接显示引导横幅
-    if (isIOS || isWeChat) {
+    // 微信内: 显示引导横幅；Android 依赖系统 beforeinstallprompt
+    if (isWeChat) {
         banner.classList.remove('hidden');
     }
 
@@ -889,11 +897,6 @@ document.addEventListener('DOMContentLoaded', init);
             markPwaPromptHandled();
             banner.classList.add('hidden');
             wechatGuide?.classList.remove('hidden');
-        } else if (isIOS) {
-            // iOS Safari: 显示手动引导
-            markPwaPromptHandled();
-            banner.classList.add('hidden');
-            iosGuide?.classList.remove('hidden');
         }
     });
 
