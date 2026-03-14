@@ -3187,29 +3187,31 @@ input[type=number] {
   font-size: 0.95rem;
   font-weight: 600;
   color: #333;
-}
-.qrcode-sub {
-  margin-top: 4px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #6f6a73;
+  border: 1px solid rgba(93, 43, 93, 0.18);
   font-size: 0.78rem;
   color: #999;
 }
 
 .icon-btn.btn-feedback {
   background: none;
+  box-shadow: 0 1px 2px rgba(93, 43, 93, 0.04);
   border: none;
   color: var(--text-tertiary);
   font-size: 0.85rem;
   font-weight: 500;
-  cursor: pointer;
+  border-color: rgba(93, 43, 93, 0.3);
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
   border-radius: 8px;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
+  padding: 18px 0 22px;
 
-.icon-btn.btn-feedback:hover {
+  border-radius: 0;
+  background: transparent;
   background: rgba(93, 43, 93, 0.05);
   color: var(--accent-plum);
 }
@@ -3225,8 +3227,8 @@ input[type=number] {
 .rating-btn {
   padding: 12px;
   background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-color: #525252;
+  background: rgba(255,255,255,0.04);
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
