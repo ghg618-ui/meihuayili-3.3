@@ -1656,10 +1656,6 @@ body {
     margin-top: 12px;
   }
 
-  .quiet-pwa-entry:not(.hidden) {
-    display: flex;
-  }
-
   .btn-logout-sidebar {
     width: 100%;
     padding: 10px;
@@ -2540,50 +2536,6 @@ input[type=number] {
   display: none;
 }
 
-.quiet-pwa-entry {
-  display: none;
-  margin: 0 auto 18px;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.btn-quiet-pwa {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: rgba(107, 76, 107, 0.08);
-  color: var(--accent-plum);
-  border: 1px solid rgba(107, 76, 107, 0.18);
-  border-radius: 999px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-quiet-pwa:hover,
-.btn-quiet-pwa:active {
-  border-color: var(--accent-plum);
-  background: rgba(107, 76, 107, 0.14);
-  transform: translateY(-1px);
-}
-
-.quiet-pwa-icon {
-  font-size: 0.95rem;
-  line-height: 1;
-}
-
-.quiet-pwa-caption {
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: var(--text-tertiary);
-}
-
 .sidebar-section-label {
   display: flex;
   justify-content: space-between;
@@ -3215,14 +3167,14 @@ input[type=number] {
 }
 
 .feedback-rating {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
   margin-bottom: 16px;
   width: 100%;
 }
 
 .rating-btn {
-  flex: 1;
   padding: 12px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -3235,7 +3187,6 @@ input[type=number] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
 }
 
 .rating-btn:hover {
@@ -3787,9 +3738,11 @@ input[type=number] {
 .pwa-install-banner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
   padding: 12px 20px;
-  margin-bottom: 20px;
+  margin: 12px 0 20px;
   background: var(--bg-secondary);
   border: 1px solid var(--accent-plum);
   border-radius: var(--radius-lg);
@@ -3857,6 +3810,46 @@ input[type=number] {
   color: var(--text-secondary);
   margin-bottom: 8px;
   line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  #modal-feedback {
+    position: fixed;
+    inset: 0;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px 0 0;
+    overflow: hidden;
+  }
+
+  #modal-feedback .modal {
+    width: 100%;
+    max-width: none;
+    max-height: min(82vh, calc(100dvh - 16px));
+    min-height: auto;
+    border-radius: 24px 24px 0 0;
+    border-bottom: none;
+    overflow: hidden;
+  }
+
+  #modal-feedback .modal-header {
+    padding-top: 18px;
+  }
+
+  #modal-feedback .modal-body {
+    overflow-y: auto;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+
+  .pwa-install-banner {
+    margin: 14px 0 20px;
+    padding: 12px 14px;
+  }
+
+  .pwa-install-text {
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
 }
 
 [data-theme="dark"] .pwa-install-banner {

@@ -837,19 +837,10 @@ document.addEventListener('DOMContentLoaded', init);
         document.getElementById('pwa-wechat-guide')?.classList.add('hidden');
     };
 
-    const showQuietPwaEntry = () => {
-        document.getElementById('quiet-pwa-entry')?.classList.remove('hidden');
-    };
-
-    const hideQuietPwaEntry = () => {
-        document.getElementById('quiet-pwa-entry')?.classList.add('hidden');
-    };
-
     // 已经以 standalone 模式运行（已安装），不显示
     if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) {
         localStorage.setItem('pwa_installed', '1');
         markPwaPromptHandled();
-        hideQuietPwaEntry();
         return;
     }
     // 电脑端不显示，仅手机/平板
@@ -862,8 +853,7 @@ document.addEventListener('DOMContentLoaded', init);
     const btnIosClose = document.getElementById('btn-pwa-ios-close');
     const wechatGuide = document.getElementById('pwa-wechat-guide');
     const btnWechatClose = document.getElementById('btn-pwa-wechat-close');
-    const btnAddToHome = document.getElementById('btn-add-to-home');
-    if (!banner && !btnAddToHome) return;
+    if (!banner) return;
 
     let deferredPrompt = null;
     const ua = navigator.userAgent;
@@ -874,31 +864,18 @@ document.addEventListener('DOMContentLoaded', init);
 
     if (isInstalled) {
         hidePwaPrompts();
-        hideQuietPwaEntry();
         return;
-    }
-
-    // iPhone/iPad 浏览器里无法可靠判断“是否已添加到主屏幕”，继续展示只会反复误报。
-    // 因此这里关闭浏览器端横幅，但保留侧边栏里的安静入口。
-    if (isIOS && !isWeChat) {
-        hidePwaPrompts();
-        showQuietPwaEntry();
     }
 
     // Android Chrome: 捕获系统安装事件
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        showQuietPwaEntry();
         if (!shouldSuppressBanner) banner?.classList.remove('hidden');
     });
 
-    // 微信内: 显示引导横幅；Android 依赖系统 beforeinstallprompt
-    if (isWeChat || isIOS) {
-        showQuietPwaEntry();
-    }
-
-    if (isWeChat && !shouldSuppressBanner) {
+    // iOS 浏览器 / 微信内: 仅在未安装且未关闭时，显示页面下方提示
+    if ((isWeChat || isIOS) && !shouldSuppressBanner) {
         banner?.classList.remove('hidden');
     }
 
@@ -911,7 +888,6 @@ document.addEventListener('DOMContentLoaded', init);
                 banner?.classList.add('hidden');
                 localStorage.setItem('pwa_installed', '1');
                 markPwaPromptHandled();
-                hideQuietPwaEntry();
             });
         } else if (isWeChat) {
             // 微信内: 引导用户用浏览器打开
@@ -924,7 +900,6 @@ document.addEventListener('DOMContentLoaded', init);
     };
 
     btnInstall?.addEventListener('click', openInstallFlow);
-    btnAddToHome?.addEventListener('click', openInstallFlow);
 
     btnDismiss?.addEventListener('click', () => {
         markPwaPromptHandled();
