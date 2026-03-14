@@ -441,15 +441,23 @@ body {
   box-shadow: none;
   outline: none;
 }
+@media (hover: hover) and (pointer: fine) {
+  .btn-time-divine:hover {
+    background: var(--accent-plum);
+    color: white;
+  }
+}
 
 [data-theme="dark"] .btn-time-divine {
   color: var(--accent-plum-light);
   border-color: var(--accent-plum-light);
 }
 
-[data-theme="dark"] .btn-time-divine:hover {
-  background: var(--accent-plum-light);
-  color: #1A111A;
+@media (hover: hover) and (pointer: fine) {
+  [data-theme="dark"] .btn-time-divine:hover {
+    background: var(--accent-plum-light);
+    color: #1A111A;
+  }
 }
 
 .btn-time-divine.hidden {
@@ -2702,6 +2710,27 @@ input[type=number] {
 .sidebar-section-label:hover {
   background: transparent;
   color: var(--accent-plum);
+}
+
+@media (hover: none), (pointer: coarse) {
+  .btn-time-divine:hover,
+  .btn-time-divine:active,
+  .btn-time-divine:focus,
+  .btn-time-divine:focus-visible {
+    background: transparent;
+    color: var(--accent-plum);
+    border-color: var(--accent-plum);
+    box-shadow: none;
+  }
+
+  [data-theme="dark"] .btn-time-divine:hover,
+  [data-theme="dark"] .btn-time-divine:active,
+  [data-theme="dark"] .btn-time-divine:focus,
+  [data-theme="dark"] .btn-time-divine:focus-visible {
+    background: transparent;
+    color: var(--accent-plum-light);
+    border-color: var(--accent-plum-light);
+  }
 }
 
 .sidebar-section-label:active {
