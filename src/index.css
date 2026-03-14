@@ -2632,9 +2632,9 @@ input[type=number] {
 
 .history-swipe-tip {
   font-size: 0.72rem;
-  color: var(--text-tertiary);
+  color: var(--accent-plum-light);
   letter-spacing: 0.04em;
-  opacity: 0.7;
+  opacity: 0.9;
   white-space: nowrap;
 }
 
@@ -3118,9 +3118,9 @@ input[type=number] {
 .msg-inline-action {
   min-width: 0;
   padding: 11px 8px;
-  background: rgba(255, 255, 255, 0.68);
-  color: var(--text-secondary);
-  border: 1px solid rgba(93, 43, 93, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--accent-plum);
+  border: 1px solid rgba(107, 76, 107, 0.34);
   border-radius: 14px;
   font-size: 0.86rem;
   font-weight: 600;
@@ -3131,8 +3131,8 @@ input[type=number] {
 
 .msg-inline-action:hover {
   color: var(--accent-plum);
-  border-color: rgba(93, 43, 93, 0.24);
-  background: rgba(93, 43, 93, 0.03);
+  border-color: rgba(107, 76, 107, 0.48);
+  background: rgba(107, 76, 107, 0.05);
 }
 
 .wechat-promo {
@@ -3484,9 +3484,9 @@ input[type=number] {
 }
 
 [data-theme="dark"] .msg-inline-action {
-  color: #b0b0b0;
-  border-color: #444;
-  background: rgba(255,255,255,0.02);
+  color: #8fc2ff;
+  border-color: #3f6f97;
+  background: rgba(255,255,255,0.04);
 }
 
 [data-theme="dark"] .msg-inline-action:hover {
