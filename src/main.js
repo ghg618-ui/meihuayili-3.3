@@ -53,7 +53,8 @@ const NON_QUESTION_PATTERNS = [
     /^(谢谢|谢了|好的|好)$/,
 ];
 const QUESTION_HINT_RE = /(是否|能否|能不能|可不可以|会不会|行不行|该不该|要不要|如何|怎么办|怎么做|怎么选|何时|什么时候|几时|结果|前景|发展|适不适合|值不值得|有没有机会|问|请问|求问|吗|？|\?)/;
-const DIVINATION_TOPIC_RE = /(工作|事业|财运|感情|婚姻|学业|考试|升学|留学|学校|合作|投资|买房|搬家|出国|孩子|家庭|官司|创业|求职|offer|录取|健康|病|复合|婚期|项目|结果|前途|对象|申请|签证|贷款|收入|发展|去不去|要不要)/;
+const DIVINATION_TOPIC_RE = /(工作|上班|事业|财运|钱|感情|婚姻|婚礼|关系|学业|考试|升学|留学|学校|合作|投资|买房|搬家|出国|孩子|家庭|官司|创业|求职|offer|录取|健康|病|复合|婚期|项目|结果|前途|对象|申请|签证|贷款|收入|发展|去不去|要不要|参加|赴约|见面|出行|旅行|聚会|活动|婚宴|生日|典礼|手术|面试|告白)/;
+const DIVINATION_ACTION_RE = /(去|不去|参加|不参加|做|不做|见|不见|答应|不答应|继续|放弃|退出|开始|停止|报名|赴约|出发|表白|复合|换|辞|搬|买|卖|投|考|读|去读|申请|签|借|还|合作|联系|见面)/;
 
 // Pending date clarification state
 let _pendingParsedResult = null;
@@ -71,9 +72,11 @@ function isMeaningfulDivinationQuestion(rawQuestion, hasParsedHex = false) {
 
     const hasTopic = DIVINATION_TOPIC_RE.test(question);
     const hasQuestionHint = QUESTION_HINT_RE.test(question);
+    const hasAction = DIVINATION_ACTION_RE.test(question);
 
     if (hasTopic && hasQuestionHint) return true;
     if (hasTopic && normalized.length >= 6) return true;
+    if (hasAction && hasQuestionHint && normalized.length >= 8) return true;
     if (hasQuestionHint && normalized.length >= 12) return true;
     if (normalized.length >= 18) return true;
     return false;
