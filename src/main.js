@@ -24,6 +24,7 @@ import state from './controllers/state.js';
 import {
     switchToLoginMode,
     switchToRegisterMode,
+    initAuthPasswordAssist,
     updateUIForAuth,
     handleAuthSubmit,
     handleLogout,
@@ -102,6 +103,7 @@ function closeMobileDrawer() {
 function init() {
     log.info('Initializing...');
     initModals();
+    initAuthPasswordAssist();
     restoreTheme();
 
     // Initialize Lucide icons

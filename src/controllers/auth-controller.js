@@ -8,13 +8,111 @@ import { loadHistory, mergeCloudHistory } from '../storage/history.js';
 import { closeModal } from '../ui/modals.js';
 import state from './state.js';
 
+const isIOSWeChat = (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) &&
+    /MicroMessenger/i.test(navigator.userAgent);
+
+function getAuthPasswordElements() {
+    return {
+        real: $('#auth-password'),
+        manual: $('#auth-password-manual')
+    };
+}
+
+function syncAuthPasswordInputs(source = 'real') {
+    const { real, manual } = getAuthPasswordElements();
+    if (!real || !manual) return;
+
+    if (source === 'manual') {
+        real.value = manual.value;
+        return;
+    }
+
+    manual.value = real.value;
+}
+
+function showRealAuthPasswordInput() {
+    const { real, manual } = getAuthPasswordElements();
+    if (!real || !manual) return;
+
+    if (!manual.classList.contains('hidden')) {
+        syncAuthPasswordInputs('manual');
+    } else {
+        syncAuthPasswordInputs('real');
+    }
+
+    real.classList.remove('hidden');
+    real.removeAttribute('aria-hidden');
+    manual.classList.add('hidden');
+    manual.setAttribute('aria-hidden', 'true');
+}
+
+function showManualAuthPasswordInput(shouldFocus = false) {
+    if (!isIOSWeChat) return;
+
+    const { real, manual } = getAuthPasswordElements();
+    if (!real || !manual) return;
+
+    syncAuthPasswordInputs('real');
+    real.classList.add('hidden');
+    real.setAttribute('aria-hidden', 'true');
+    manual.classList.remove('hidden');
+    manual.removeAttribute('aria-hidden');
+
+    if (shouldFocus) {
+        setTimeout(() => {
+            manual.focus();
+            const length = manual.value.length;
+            manual.setSelectionRange?.(length, length);
+        }, 0);
+    }
+}
+
+function getAuthPasswordValue() {
+    const { real, manual } = getAuthPasswordElements();
+    if (!real) return '';
+    if (!manual || manual.classList.contains('hidden')) {
+        return real.value;
+    }
+    return manual.value;
+}
+
+export function initAuthPasswordAssist() {
+    if (!isIOSWeChat) return;
+
+    const { real, manual } = getAuthPasswordElements();
+    if (!real || !manual) return;
+
+    showRealAuthPasswordInput();
+
+    const syncFromReal = () => syncAuthPasswordInputs('real');
+    real.addEventListener('input', syncFromReal);
+    real.addEventListener('change', syncFromReal);
+
+    manual.addEventListener('input', () => syncAuthPasswordInputs('manual'));
+    manual.addEventListener('change', () => syncAuthPasswordInputs('manual'));
+
+    const maybeSwitchToManualEditor = (e) => {
+        if ($('#tab-register')?.classList.contains('active')) return;
+        if (!real.value) return;
+        if (!manual.classList.contains('hidden')) return;
+        e.preventDefault();
+        showManualAuthPasswordInput(true);
+    };
+
+    real.addEventListener('click', maybeSwitchToManualEditor);
+    real.addEventListener('touchend', maybeSwitchToManualEditor);
+}
+
 export function switchToLoginMode() {
     $('#tab-login').classList.add('active');
     $('#tab-register').classList.remove('active');
     $('#confirm-password-group').classList.add('hidden');
     $('#email-group')?.classList.add('hidden');
     $('#auth-password')?.setAttribute('autocomplete', 'current-password');
+    $('#auth-password-manual')?.setAttribute('autocomplete', 'off');
     $('#auth-confirm-password')?.setAttribute('autocomplete', 'off');
+    showRealAuthPasswordInput();
     $('#btn-auth-submit').textContent = '登录';
     // 确保显示登录表单，隐藏重置表单
     $('#auth-form-main')?.classList.remove('hidden');
@@ -27,7 +125,9 @@ export function switchToRegisterMode() {
     $('#confirm-password-group').classList.remove('hidden');
     $('#email-group')?.classList.remove('hidden');
     $('#auth-password')?.setAttribute('autocomplete', 'new-password');
+    $('#auth-password-manual')?.setAttribute('autocomplete', 'off');
     $('#auth-confirm-password')?.setAttribute('autocomplete', 'new-password');
+    showRealAuthPasswordInput();
     $('#btn-auth-submit').textContent = '注册并进入';
     $('#auth-form-main')?.classList.remove('hidden');
     $('#auth-form-reset')?.classList.add('hidden');
@@ -118,7 +218,7 @@ const USERNAME_RE = /^[\w\u4e00-\u9fa5]+$/; // letters, digits, _, Chinese
 
 export async function handleAuthSubmit(renderHistory) {
     const username = $('#auth-username').value.trim();
-    const password = $('#auth-password').value;
+    const password = getAuthPasswordValue();
     const mode = $('#tab-register').classList.contains('active') ? 'register' : 'login';
 
     if (!username || !password) {
@@ -285,6 +385,8 @@ export async function handleResetSubmit() {
             hideForgotPassword();
             $('#auth-username').value = name;
             $('#auth-password').value = '';
+            $('#auth-password-manual') && ($('#auth-password-manual').value = '');
+            showRealAuthPasswordInput();
             $('#auth-password').focus();
         } else {
             showToast(data.error || '重置失败', 'error');

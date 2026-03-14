@@ -2900,9 +2900,10 @@ input[type=number] {
   box-sizing: border-box;
 }
 
-/* 密码遮罩：用 text 类型 + CSS 圆点遮盖，避免 iOS 密码管理器弹出 */
+/* 手动编辑密码时，用 text 类型 + CSS 圆点遮盖，避免再次触发系统密码接管 */
 .masked-input {
   -webkit-text-security: disc;
+  letter-spacing: 0.14em;
 }
 
 .control-group input:focus {
