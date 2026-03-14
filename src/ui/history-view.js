@@ -16,22 +16,76 @@ export function renderHistoryList(container, history, currentId, onSelect, onDel
         const time = (item.timestamp || '').split(' ')[0] || '';
         return `
         <div class="history-item ${String(currentId) === String(item.id) ? 'active' : ''}" data-id="${item.id}">
-            <div class="history-item-top">
-                <span class="history-item-name">${escapeHtml(name)}</span>
-                <span class="history-item-time" style="font-size: 0.75rem; color: var(--text-tertiary); font-weight: normal;">${escapeHtml(time)}</span>
+            <div class="history-item-surface">
+                <div class="history-item-top">
+                    <span class="history-item-name">${escapeHtml(name)}</span>
+                    <span class="history-item-time" style="font-size: 0.75rem; color: var(--text-tertiary); font-weight: normal;">${escapeHtml(time)}</span>
+                </div>
+                <div class="history-item-desc">${escapeHtml(item.question || '未设问')}</div>
             </div>
-            <div class="history-item-desc">${escapeHtml(item.question || '未设问')}</div>
-            <div class="history-delete-btn" title="删除记录">🗑️</div>
+            <button class="history-delete-btn" type="button" title="删除记录">删除</button>
         </div>
     `;
     }).join('');
 
     // Attach listeners
+    let openedItem = null;
+
+    const closeOpenedItem = () => {
+        if (!openedItem) return;
+        openedItem.classList.remove('swiped');
+        const openedBtn = openedItem.querySelector('.history-delete-btn');
+        if (openedBtn) {
+            openedBtn.dataset.confirming = 'false';
+            openedBtn.textContent = '删除';
+        }
+        openedItem = null;
+    };
+
     container.querySelectorAll('.history-item').forEach(el => {
+        let startX = 0;
+        let startY = 0;
+        let deltaX = 0;
+
         el.addEventListener('click', (e) => {
             if (e.target.closest('.history-delete-btn')) return;
+            if (el.classList.contains('swiped')) {
+                closeOpenedItem();
+                return;
+            }
             const id = el.dataset.id;
             if (onSelect) onSelect(id);
+        });
+
+        el.addEventListener('touchstart', (e) => {
+            const touch = e.changedTouches?.[0];
+            if (!touch) return;
+            startX = touch.clientX;
+            startY = touch.clientY;
+            deltaX = 0;
+        }, { passive: true });
+
+        el.addEventListener('touchmove', (e) => {
+            const touch = e.changedTouches?.[0];
+            if (!touch) return;
+            deltaX = touch.clientX - startX;
+            const deltaY = touch.clientY - startY;
+            if (Math.abs(deltaX) > Math.abs(deltaY) && deltaX < -18) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        el.addEventListener('touchend', () => {
+            if (deltaX < -42) {
+                if (openedItem && openedItem !== el) closeOpenedItem();
+                el.classList.add('swiped');
+                openedItem = el;
+                return;
+            }
+
+            if (deltaX > 30 && el.classList.contains('swiped')) {
+                closeOpenedItem();
+            }
         });
 
         const delBtn = el.querySelector('.history-delete-btn');
@@ -40,15 +94,14 @@ export function renderHistoryList(container, history, currentId, onSelect, onDel
                 e.stopPropagation();
                 const id = el.dataset.id;
                 if (delBtn.dataset.confirming === 'true') {
+                    closeOpenedItem();
                     if (onDelete) onDelete(id);
                 } else {
                     delBtn.dataset.confirming = 'true';
-                    delBtn.textContent = '❌';
-                    delBtn.style.color = 'red';
+                    delBtn.textContent = '确认';
                     setTimeout(() => {
                         delBtn.dataset.confirming = 'false';
-                        delBtn.textContent = '🗑️';
-                        delBtn.style.color = '';
+                        delBtn.textContent = '删除';
                     }, 3000);
                 }
             };

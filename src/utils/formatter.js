@@ -12,6 +12,15 @@ const CANONICAL_HEADINGS = [
     { match: ['慎行事项'], output: '### ⚠️ 【慎行事项】' },
 ];
 
+const DISPLAY_HEADING_MAP = new Map([
+    ['### 🎴 【卦象速览】', '### 卦象'],
+    ['### 🔮 【一语定调】', '### 定调'],
+    ['### 📊 【现状与大势】', '### 大势'],
+    ['### 🔄 【过程与结局】', '### 结局'],
+    ['### 💡 【行动建议】', '### 建议'],
+    ['### ⚠️ 【慎行事项】', '### 慎行'],
+]);
+
 export function normalizeAnalysisText(text) {
     if (!text) return '';
 
@@ -52,6 +61,10 @@ function normalizeHeadingLine(line) {
 export function formatMarkdown(text) {
     if (!text) return '';
     text = normalizeAnalysisText(text);
+    text = text
+        .split('\n')
+        .map((line) => DISPLAY_HEADING_MAP.get(line.trim()) || line)
+        .join('\n');
     // Simple markdown formatting
     let html = escapeHtml(text);
     // Headers (strip redundant ** inside header lines before converting)

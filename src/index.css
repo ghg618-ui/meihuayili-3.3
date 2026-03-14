@@ -2123,13 +2123,14 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 14px;
-  padding: 6px 12px;
+  margin: 2px 0 18px;
+  padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(93, 43, 93, 0.05);
-  border: 1px solid rgba(93, 43, 93, 0.08);
-  color: var(--text-secondary);
-  font-size: 0.82rem;
+  background: rgba(93, 43, 93, 0.07);
+  border: 1px solid rgba(93, 43, 93, 0.12);
+  color: var(--accent-plum);
+  font-size: 0.84rem;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 
@@ -2137,8 +2138,20 @@ body {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: rgba(93, 43, 93, 0.45);
-  box-shadow: 0 0 0 4px rgba(93, 43, 93, 0.08);
+  background: rgba(93, 43, 93, 0.7);
+  box-shadow: 0 0 0 4px rgba(93, 43, 93, 0.12);
+}
+
+.msg-content h4 {
+  margin: 28px 0 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--text-tertiary);
+}
+
+.msg-content h4:first-child {
+  margin-top: 0;
 }
 
 .chat-message.user {
@@ -2176,12 +2189,20 @@ body {
   transition: var(--transition-smooth);
   position: relative;
   overflow: hidden;
+  touch-action: pan-y;
 }
 
 .history-item:hover {
   background: var(--bg-secondary);
-  padding-right: 40px;
-  /* Make room for delete button */
+}
+
+.history-item-surface {
+  transition: transform 0.22s ease;
+}
+
+.history-item:hover .history-item-surface,
+.history-item.swiped .history-item-surface {
+  transform: translateX(-56px);
 }
 
 .history-item-top {
@@ -2203,26 +2224,32 @@ body {
 
 .history-delete-btn {
   position: absolute;
-  right: -40px;
+  right: 0;
   top: 0;
   bottom: 0;
-  width: 40px;
-  background: #FF3B30;
-  color: white;
+  width: 56px;
+  background: rgba(93, 43, 93, 0.12);
+  color: var(--accent-plum);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: right 0.2s ease;
-  font-size: 1rem;
+  transition: opacity 0.2s ease, color 0.2s ease, background 0.2s ease;
+  font-size: 0.82rem;
+  font-weight: 600;
   z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  border: none;
 }
 
-.history-item:hover .history-delete-btn {
-  right: 0;
+.history-item:hover .history-delete-btn,
+.history-item.swiped .history-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .history-delete-btn:hover {
-  background: #FF453A;
+  background: rgba(93, 43, 93, 0.18);
 }
 
 /* Utilities */
@@ -3058,16 +3085,16 @@ input[type=number] {
 .msg-feedback-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 15px;
+  margin-top: 22px;
   border-top: 1px dashed rgba(93, 43, 93, 0.1);
-  padding-top: 10px;
+  padding-top: 14px;
 }
 
 .msg-bottom-actions {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 .btn-new-case-inline {
@@ -3107,11 +3134,11 @@ input[type=number] {
 /* WeChat promo line */
 .wechat-promo {
   text-align: center;
-  margin-top: 14px;
-  padding: 10px 16px;
-  background: rgba(93, 43, 93, 0.04);
+  margin-top: 22px;
+  padding: 16px 18px 14px;
+  background: rgba(93, 43, 93, 0.025);
   border: 1px dashed var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: 18px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -3121,15 +3148,16 @@ input[type=number] {
 }
 .wechat-promo-text {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   color: var(--text-secondary);
+  line-height: 1.7;
 }
 .wechat-promo-hint {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: var(--accent-plum);
-  margin-top: 3px;
-  opacity: 0.8;
+  margin-top: 10px;
+  opacity: 0.72;
 }
 
 /* QR Code modal */
@@ -3662,20 +3690,22 @@ input[type=number] {
   }
 
   .history-delete-btn {
-    right: 8px;
-    top: 8px;
-    bottom: auto;
-    width: 26px;
-    height: 26px;
-    border-radius: 999px;
-    background: color-mix(in srgb, #ff3b30 88%, white);
-    font-size: 0.78rem;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 54px;
+    height: auto;
+    border-radius: 0;
+    background: rgba(93, 43, 93, 0.12);
+    font-size: 0.76rem;
     line-height: 1;
-    box-shadow: 0 2px 6px rgba(255, 59, 48, 0.22);
+    box-shadow: none;
   }
 
-  .history-item:hover .history-delete-btn {
-    right: 8px;
+  .history-item:hover .history-delete-btn,
+  .history-item.swiped .history-delete-btn {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .history-hint {

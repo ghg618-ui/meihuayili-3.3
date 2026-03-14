@@ -684,7 +684,7 @@ function loadHistoryRecord(id) {
         $('#chat-messages')?.insertAdjacentHTML('afterbegin', `
             <div class="history-replay-badge">
                 <span class="history-replay-dot"></span>
-                <span>历史回看</span>
+                <span>以下为历史记录</span>
             </div>
         `);
 

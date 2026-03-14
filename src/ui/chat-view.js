@@ -39,8 +39,8 @@ export function appendAssistantMessageActions(msgEl) {
             <button class="btn-export-inline" onclick="window.exportDivinationResult()">📤 导出结果</button>
         </div>
         <div class="wechat-promo" onclick="window.showQRCode()">
-            <span class="wechat-promo-text">📱 关注微信服务号「易泓录」获取更多易学智慧</span>
-            <span class="wechat-promo-hint">👉 点击查看二维码</span>
+            <span class="wechat-promo-text">微信服务号：易泓录</span>
+            <span class="wechat-promo-hint">点击查看二维码</span>
         </div>
     `);
 }
