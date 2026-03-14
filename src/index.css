@@ -367,7 +367,7 @@ body {
   letter-spacing: 0.05em;
 }
 
-.input-wrap {
+.input-container-large {
   position: relative;
   width: 100%;
   max-width: 900px;
@@ -377,14 +377,16 @@ body {
 #input-chat {
   box-sizing: border-box;
   width: 100%;
-  min-height: 182px;
-  padding: 32px 28px;
+  min-height: 120px;
+  max-height: 50vh;
+  padding: 24px 24px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   font-size: 1.15rem;
   font-family: var(--font-serif);
   background: var(--bg-primary);
   resize: none;
+  overflow-y: auto;
   transition: var(--transition-smooth);
   line-height: 1.7;
   color: var(--text-primary);
@@ -1743,8 +1745,8 @@ body {
 
   #input-chat {
     box-sizing: border-box;
-    min-height: 156px;
-    padding: 26px 18px;
+    min-height: 100px;
+    padding: 20px 16px;
     font-size: 1rem;
     border-radius: var(--radius-md);
   }

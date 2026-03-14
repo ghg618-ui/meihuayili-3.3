@@ -503,6 +503,7 @@ function bindEvents() {
     }
 
     $('#input-chat')?.addEventListener('input', handleTextInputChange);
+    $('#input-chat')?.addEventListener('input', autoResizeTextarea);
     $('#btn-time-divine')?.addEventListener('click', handleTimeDivineAuto);
     $('#btn-quick-parse')?.addEventListener('click', handleQuickParse);
     $('#btn-stop-generate')?.addEventListener('click', () => {
@@ -536,6 +537,13 @@ function bindEvents() {
 }
 
 // ===================== Handlers =====================
+
+function autoResizeTextarea() {
+    const el = $('#input-chat');
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+}
 
 function handleTextInputChange() {
     const text = $('#input-chat').value.trim();
