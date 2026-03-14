@@ -343,8 +343,8 @@
             display: none;
         }
     </style>
-  <script type="module" src="/assets/index-DbPH4sF5.js"></script>
-  <link rel="stylesheet" href="/assets/index-qweoNJGB.css">
+  <script type="module" src="/assets/index-CPQw9zhX.js"></script>
+  <link rel="stylesheet" href="/assets/index-DRj2kxfs.css">
 </head>
 
 <body>
@@ -605,7 +605,7 @@
                 <div id="auth-msg-success" class="auth-success"></div>
 
                 <!-- 登录/注册表单 -->
-                <div id="auth-form-main">
+                <form id="auth-form-main" onsubmit="event.preventDefault();">
                     <div class="control-group">
                         <label for="auth-username">用户名</label>
                         <input type="text" id="auth-username" placeholder="请输入用户名" autocomplete="username">
@@ -626,10 +626,10 @@
                     <p id="forgot-password-link" style="text-align: center; margin-top: 10px; font-size: 0.78rem; color: var(--accent-plum); cursor: pointer;">
                         忘记密码？
                     </p>
-                </div>
+                </form>
 
                 <!-- 忘记密码表单 -->
-                <div id="auth-form-reset" class="hidden">
+                <form id="auth-form-reset" class="hidden" onsubmit="event.preventDefault();">
                     <div class="control-group">
                         <label for="reset-username">用户名</label>
                         <input type="text" id="reset-username" placeholder="请输入你注册时的用户名">
@@ -650,7 +650,7 @@
                     <p id="back-to-login" style="text-align: center; margin-top: 12px; font-size: 0.8rem; color: var(--accent-plum); cursor: pointer;">
                         ← 返回登录
                     </p>
-                </div>
+                </form>
 
                 <div class="vip-redeem-section hidden" id="vip-redeem-section" style="margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border-color);">
                     <label style="font-size: 0.8rem; color: var(--text-tertiary);">有兑换码？</label>
@@ -675,7 +675,7 @@
                         </div>
                     </div>
                     <!-- 修改密码区 -->
-                    <div id="profile-change-pwd-section" style="padding:0 4px;margin-top:14px;border-top:1px dashed var(--border-color);padding-top:14px;">
+                    <form id="profile-change-pwd-section" onsubmit="event.preventDefault();" style="padding:0 4px;margin-top:14px;border-top:1px dashed var(--border-color);padding-top:14px;">
                         <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:10px;">修改密码</p>
                         <div class="control-group" style="margin-bottom:8px;">
                             <input type="password" id="profile-old-pwd" placeholder="当前密码" autocomplete="off" style="width:100%;">
@@ -684,7 +684,7 @@
                             <input type="password" id="profile-new-pwd" placeholder="新密码（至少4位）" autocomplete="off" style="width:100%;">
                         </div>
                         <button class="btn-primary" id="btn-change-pwd" style="width:100%;font-size:0.85rem;">确认修改</button>
-                    </div>
+                    </form>
                     <!-- 管理员统计区 -->
                     <div id="profile-admin-section" class="hidden" style="border-top:1px dashed var(--border-color);padding-top:14px;margin-top:8px;">
                         <p style="font-size:0.82rem;color:var(--text-tertiary);margin-bottom:6px;">📊 管理员面板</p>
