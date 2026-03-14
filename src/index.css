@@ -2062,6 +2062,7 @@ body {
     font-size: 0.9rem;
   }
 
+  .history-open-btn,
   .history-delete-btn {
     width: 36px;
     font-size: 1rem;
@@ -2284,10 +2285,16 @@ body {
 
 .history-item-surface {
   transition: transform 0.22s ease;
+  position: relative;
+  z-index: 1;
+  background: inherit;
 }
 
-.history-item.swiped .history-item-surface {
-  transform: translateX(-56px);
+.history-item.swiped-left .history-item-surface {
+  transform: translateX(-60px);
+}
+.history-item.swiped-right .history-item-surface {
+  transform: translateX(60px);
 }
 
 .history-item-top {
@@ -2307,29 +2314,48 @@ body {
   text-overflow: ellipsis;
 }
 
+.history-open-btn,
 .history-delete-btn {
   position: absolute;
-  right: 0;
   top: 0;
   bottom: 0;
-  width: 56px;
-  background: rgba(217, 152, 72, 0.14);
-  color: var(--accent-plum);
+  width: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.2s ease, color 0.2s ease, background 0.2s ease;
   font-size: 0.82rem;
   font-weight: 600;
-  z-index: 2;
+  z-index: 0;
   opacity: 0;
   pointer-events: none;
   border: none;
+  transition: opacity 0.2s ease, background 0.2s ease;
 }
 
-.history-item.swiped .history-delete-btn {
+.history-open-btn {
+  left: 0;
+  background: rgba(72, 152, 217, 0.14);
+  color: #3d8ab8;
+}
+
+.history-delete-btn {
+  right: 0;
+  background: rgba(217, 152, 72, 0.14);
+  color: var(--accent-plum);
+}
+
+.history-item.swiped-right .history-open-btn {
   opacity: 1;
   pointer-events: auto;
+}
+
+.history-item.swiped-left .history-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.history-open-btn:hover {
+  background: rgba(72, 152, 217, 0.22);
 }
 
 .history-delete-btn:hover {
@@ -4022,20 +4048,34 @@ input[type=number] {
     padding-right: 16px;
   }
 
+  .history-open-btn,
   .history-delete-btn {
-    right: 0;
     top: 0;
     bottom: 0;
     width: 54px;
     height: auto;
     border-radius: 0;
-    background: rgba(217, 152, 72, 0.14);
     font-size: 0.76rem;
     line-height: 1;
     box-shadow: none;
   }
 
-  .history-item.swiped .history-delete-btn {
+  .history-open-btn {
+    left: 0;
+    background: rgba(72, 152, 217, 0.14);
+  }
+
+  .history-delete-btn {
+    right: 0;
+    background: rgba(217, 152, 72, 0.14);
+  }
+
+  .history-item.swiped-left .history-delete-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .history-item.swiped-right .history-open-btn {
     opacity: 1;
     pointer-events: auto;
   }
