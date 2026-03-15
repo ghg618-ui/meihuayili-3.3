@@ -468,27 +468,31 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 14px 32px;
-  font-size: 1rem;
+  padding: 12px 32px;
+  font-size: 0.95rem;
   font-family: var(--font-sans);
   font-weight: 500;
-  color: #fff;
-  background: var(--accent-plum);
-  border: none;
-  border-radius: var(--radius-md);
+  color: var(--accent-plum);
+  background: transparent;
+  border: 1.5px solid var(--accent-plum);
+  border-radius: 100px;
   cursor: pointer;
-  letter-spacing: 0.02em;
-  transition: var(--transition-smooth);
+  letter-spacing: 0.04em;
+  transition: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.btn-quick-parse:hover {
-  background: var(--accent-plum-dark);
-  transform: scale(1.02);
-  box-shadow: var(--shadow-md);
-}
-
+.btn-quick-parse:hover,
+.btn-quick-parse:focus,
 .btn-quick-parse:active {
-  transform: scale(0.98);
+  background: transparent !important;
+  color: var(--accent-plum) !important;
+  border-color: var(--accent-plum) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transform: none;
 }
 
 .btn-quick-parse.hidden {
@@ -2805,11 +2809,12 @@ input[type=number] {
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--accent-plum);
-  color: white;
-  font-size: 0.7rem;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1;
+  border: 1px solid var(--border-color);
 }
 
 .history-count:empty {
