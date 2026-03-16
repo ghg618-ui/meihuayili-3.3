@@ -148,6 +148,11 @@ function updateMobileNewCaseButtonVisibility() {
         return;
     }
 
+    if (document.body.classList.contains('oracle-waiting')) {
+        button.classList.add('hidden');
+        return;
+    }
+
     const hasVisibleResult = Boolean(state.currentResult) && !$('#ai-chat')?.classList.contains('hidden');
     if (!hasVisibleResult) {
         button.classList.add('hidden');
