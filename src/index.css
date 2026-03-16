@@ -3302,6 +3302,50 @@ input[type=number] {
   line-height: 1.6;
 }
 
+/* --- Footer Brand Badge --- */
+.main-footer {
+  padding: 32px 0 24px;
+  text-align: center;
+}
+.footer-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.footer-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+.footer-brand {
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  letter-spacing: 0.35em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: color 0.3s;
+  white-space: nowrap;
+  user-select: none;
+}
+.footer-brand:hover {
+  color: var(--accent-plum);
+}
+
+/* --- QR Close Button --- */
+.qrcode-close {
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: #aaa;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.qrcode-close:hover {
+  color: var(--accent-plum);
+}
+
 #modal-qrcode {
   align-items: center;
   justify-content: center;
@@ -3848,6 +3892,9 @@ input[type=number] {
 }
 [data-theme="dark"] .qrcode-label { color: #e0e0e0; }
 [data-theme="dark"] .qrcode-sub { color: #888; }
+[data-theme="dark"] .qrcode-close { color: #666; }
+[data-theme="dark"] .footer-brand { color: #666; }
+[data-theme="dark"] .footer-line { background: linear-gradient(90deg, transparent, #454545, transparent); }
 
 [data-theme="dark"] #hexagram-display,
 [data-theme="dark"] #ai-chat,
